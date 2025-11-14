@@ -8,17 +8,20 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from .serializers import UserSerializer
+import json
 
 User = get_user_model()
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [AllowAny]  # Make sure register is also public
 
 @api_view(['POST'])
-@permission_classes([AllowAny])  # Allows anyone to access login
-@csrf_exempt  # Exempt from CSRF for API usage
+@permission_classes([AllowAny])
+@csrf_exempt
 def login_view(request):
+    # For API requests, use request.data instead of request.POST
     username = request.data.get('username')
     password = request.data.get('password')
     
@@ -39,7 +42,7 @@ def login_view(request):
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])  # Requires authentication
+@permission_classes([IsAuthenticated])
 def logout_view(request):
     try:
         request.user.auth_token.delete()
@@ -48,7 +51,7 @@ def logout_view(request):
         return Response({'error': 'Error logging out'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])  # Requires authentication
+@permission_classes([IsAuthenticated])
 def user_profile(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
