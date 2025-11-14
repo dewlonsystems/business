@@ -130,8 +130,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # CORS settings for React frontend
 CORS_ALLOWED_ORIGINS = [
-    "https://portal-acces.vercel.app",
-    "https://business-portal-i5by.onrender.com",  # Replace with your Vercel domain
+    "https://portal-acces.vercel.app",  # Your Vercel domain
     "http://localhost:5173",  # Default Vite port
     "http://127.0.0.1:5173",  # Alternative localhost format
     "http://localhost:3000",  # React default port
@@ -159,7 +158,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticated',  # Applies to most endpoints
     ],
 }
 

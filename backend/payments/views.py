@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from django.views.decorators.cache import never_cache
 from .models import Payment
 from .serializers import PaymentSerializer
 from .services import PaymentProcessor, PaystackService
@@ -137,12 +137,14 @@ def mpesa_callback(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt
 def paystack_webhook(request):
     """Handle Paystack webhook"""
     if request.method == 'POST':
         # Verify webhook signature
-        secret = config('PAYSTACK_WEBHOOK_SECRET')
+        import hashlib
+        import hmac
+        
+        secret = "your_paystack_webhook_secret_here"  # Replace with your actual webhook secret
         signature = request.META.get('HTTP_X_PAYSTACK_SIGNATURE')
         
         if signature:

@@ -15,7 +15,7 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 @api_view(['POST'])
-@permission_classes([AllowAny])  # Allow anyone to login
+@permission_classes([AllowAny])  # Allows anyone to access login
 def login_view(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -37,7 +37,7 @@ def login_view(request):
     return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])  # Requires authentication
 def logout_view(request):
     try:
         request.user.auth_token.delete()
@@ -46,7 +46,7 @@ def logout_view(request):
         return Response({'error': 'Error logging out'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated])  # Requires authentication
 def user_profile(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
