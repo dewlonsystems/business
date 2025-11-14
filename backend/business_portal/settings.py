@@ -151,15 +151,15 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# REST Framework settings
+# REST Framework settings - NO DEFAULT PERMISSION CLASSES
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',  # Applies to most endpoints
-    ],
+    # DO NOT include DEFAULT_PERMISSION_CLASSES here
+    # We'll handle permissions per view
+    # This ensures that login endpoint is not protected by default
 }
 
 # Custom configurations from your original settings
