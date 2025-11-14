@@ -4,14 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Container, 
   Paper, 
-  Typography, 
   TextField, 
   Button, 
+  Typography, 
   Box,
   Alert,
   CircularProgress,
-  Divider,
-  Avatar
+  Avatar,
+  Divider
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { authAPI } from '../services/api';
@@ -43,10 +43,19 @@ const Login = () => {
     } catch (error) {
       console.error('Login error:', error);
       if (error.response) {
-        setError(error.response.data.error || 'Invalid credentials. Please try again.');
+        // Server responded with error status
+        if (error.response.status === 401) {
+          setError('Invalid credentials. Please try again.');
+        } else if (error.response.status === 400) {
+          setError('Username and password are required.');
+        } else {
+          setError(error.response.data.error || 'Invalid credentials. Please try again.');
+        }
       } else if (error.request) {
+        // Request was made but no response received
         setError('Network error. Please check your connection and try again.');
       } else {
+        // Something else happened
         setError('An error occurred. Please try again.');
       }
     } finally {
@@ -62,49 +71,10 @@ const Login = () => {
         alignItems: 'center', 
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #4a7c59 0%, #7ba08c 100%)',
-        padding: { xs: 2, sm: 3, md: 4 },
-        position: 'relative'
+        padding: { xs: 2, sm: 3, md: 4 }
       }}
     >
-      {/* Decorative Elements - Positioned absolutely behind the main content */}
-      <Box 
-        sx={{ 
-          position: 'absolute', 
-          top: 40, 
-          right: 40, 
-          width: 120, 
-          height: 120, 
-          background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-          borderRadius: '50%',
-          zIndex: 0,
-          pointerEvents: 'none'
-        }} 
-      />
-      <Box 
-        sx={{ 
-          position: 'absolute', 
-          bottom: 40, 
-          left: 40, 
-          width: 100, 
-          height: 100, 
-          background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-          borderRadius: '50%',
-          zIndex: 0,
-          pointerEvents: 'none'
-        }} 
-      />
-      
-      {/* Main content container */}
-      <Container 
-        maxWidth="sm" 
-        sx={{ 
-          position: 'relative', 
-          zIndex: 1,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}
-      >
+      <Container maxWidth="sm">
         <Paper 
           elevation={6}
           sx={{ 
@@ -112,8 +82,6 @@ const Login = () => {
             borderRadius: 3,
             position: 'relative',
             overflow: 'hidden',
-            width: '100%',
-            maxWidth: 450,
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -127,21 +95,24 @@ const Login = () => {
         >
           {/* Header Section */}
           <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Avatar 
+            <Box
               sx={{ 
-                bgcolor: '#4a7c59', 
                 width: 60, 
                 height: 60, 
                 margin: '0 auto 16px',
+                bgcolor: '#4a7c59',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 boxShadow: '0 4px 12px rgba(74, 124, 89, 0.3)',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  transition: 'transform 0.2s ease-in-out'
-                }
+                color: 'white',
+                fontSize: 24,
+                fontWeight: 'bold'
               }}
             >
-              <LockOutlinedIcon fontSize="large" />
-            </Avatar>
+              🔐
+            </Box>
             <Typography 
               component="h1" 
               variant="h4" 
@@ -280,6 +251,34 @@ const Login = () => {
             </Box>
           </Box>
         </Paper>
+
+        {/* Decorative Elements */}
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            top: 20, 
+            right: 20, 
+            width: 80, 
+            height: 80, 
+            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} 
+        />
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            bottom: 20, 
+            left: 20, 
+            width: 60, 
+            height: 60, 
+            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+            borderRadius: '50%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }} 
+        />
       </Container>
     </Box>
   );
