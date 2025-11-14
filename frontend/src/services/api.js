@@ -6,11 +6,15 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000
 // Create base API instance for authenticated requests
 const api = axios.create({
   baseURL: API_BASE_URL,
+  xsrfCookieName: false,  // Disable CSRF
+  xsrfHeaderName: false,  // Disable CSRF
 });
 
 // Create auth API instance for authentication requests (no automatic token)
 const authApi = axios.create({
   baseURL: API_BASE_URL,
+  xsrfCookieName: false,  // Disable CSRF
+  xsrfHeaderName: false,  // Disable CSRF
 });
 
 // Add token to requests automatically for the main API (authenticated endpoints)
@@ -21,9 +25,6 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-
-// Don't add token to auth API requests (login, register, etc.)
-// These will be handled separately
 
 // Account services (use authApi which doesn't auto-add tokens)
 export const authAPI = {
