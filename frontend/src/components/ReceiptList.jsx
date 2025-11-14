@@ -1,0 +1,737 @@
+// src/components/ReceiptList.jsx
+import React, { useState, useEffect } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Paper, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Grid,
+  Card,
+  CardContent,
+  CardHeader,
+  Pagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  Skeleton
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  Refresh as RefreshIcon,
+  Download as DownloadIcon,
+  Visibility as VisibilityIcon,
+  Close as CloseIcon,
+  Print as PrintIcon
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { receiptAPI } from '../services/api';
+
+const ReceiptList = () => {
+  const [receipts, setReceipts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [showReceiptDialog, setShowReceiptDialog] = useState(false);
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    fetchReceipts();
+  }, []);
+
+  const fetchReceipts = async () => {
+    try {
+      setLoading(true);
+      // Simulate loading for better UX
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const response = await receiptAPI.getReceipts(); // This should be implemented in your API service
+      setReceipts(response.data);
+    } catch (error) {
+      console.error('Error fetching receipts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'success':
+        return { color: 'success', label: 'Success' };
+      case 'failed':
+        return { color: 'error', label: 'Failed' };
+      case 'pending':
+        return { color: 'warning', label: 'Pending' };
+      default:
+        return { color: 'default', label: status };
+    }
+  };
+
+  const filteredReceipts = receipts.filter(receipt => {
+    const matchesSearch = receipt.receipt_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         receipt.payment?.reference_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         receipt.payment?.phone_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         receipt.staff_member?.username.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || receipt.payment?.status === statusFilter;
+    
+    const receiptDate = new Date(receipt.generated_at);
+    const fromDate = dateFrom ? new Date(dateFrom) : null;
+    const toDate = dateTo ? new Date(dateTo) : null;
+    
+    const matchesDate = (!fromDate || receiptDate >= fromDate) && (!toDate || receiptDate <= toDate);
+    
+    return matchesSearch && matchesStatus && matchesDate;
+  });
+
+  const paginatedReceipts = filteredReceipts.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
+  const handleViewReceipt = (receipt) => {
+    setSelectedReceipt(receipt);
+    setShowReceiptDialog(true);
+  };
+
+  const handleCloseReceiptDialog = () => {
+    setShowReceiptDialog(false);
+    setSelectedReceipt(null);
+  };
+
+  const exportToCSV = () => {
+    // In a real app, this would generate a CSV file
+    alert('CSV export functionality would be implemented here');
+  };
+
+  const exportToPDF = () => {
+    // In a real app, this would generate a PDF file
+    alert('PDF export functionality would be implemented here');
+  };
+
+  const printReceipt = (receipt) => {
+    // In a real app, this would open a print dialog
+    alert('Print functionality would be implemented here');
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
+        {/* Header Skeleton */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+          <Skeleton variant="text" width={250} height={40} />
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Skeleton variant="rectangular" width={100} height={40} sx={{ borderRadius: 2 }} />
+            <Skeleton variant="rectangular" width={100} height={40} sx={{ borderRadius: 2 }} />
+          </Box>
+        </Box>
+
+        {/* Filters Skeleton */}
+        <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {[...Array(4)].map((_, index) => (
+              <Skeleton key={index} variant="rectangular" width="100%" height={56} sx={{ borderRadius: 1 }} />
+            ))}
+          </Box>
+        </Paper>
+
+        {/* Table Skeleton */}
+        <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {[...Array(8)].map((_, index) => (
+                    <TableCell key={index}>
+                      <Skeleton variant="text" width={80} />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[...Array(10)].map((_, index) => (
+                  <TableRow key={index}>
+                    {[...Array(8)].map((_, cellIndex) => (
+                      <TableCell key={cellIndex}>
+                        <Skeleton variant="text" width={60} />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Container>
+    );
+  }
+
+  return (
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
+      {/* Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 4,
+        flexWrap: 'wrap',
+        gap: 2
+      }}>
+        <Typography 
+          variant="h3" 
+          component="h1" 
+          sx={{ 
+            color: '#333',
+            fontWeight: 700,
+            fontSize: { xs: '1.8rem', sm: '2rem', md: '2.5rem' }
+          }}
+        >
+          Receipts
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<RefreshIcon />}
+            onClick={fetchReceipts}
+            sx={{ 
+              color: '#4a7c59', 
+              borderColor: '#4a7c59',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(74, 124, 89, 0.1)',
+                borderColor: '#3d664b'
+              }
+            }}
+          >
+            Refresh
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<DownloadIcon />}
+            onClick={exportToCSV}
+            sx={{ 
+              color: '#4a7c59', 
+              borderColor: '#4a7c59',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(74, 124, 89, 0.1)',
+                borderColor: '#3d664b'
+              }
+            }}
+          >
+            Export CSV
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate('/payments')}
+            sx={{ 
+              backgroundColor: '#4a7c59', 
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              '&:hover': {
+                backgroundColor: '#3d664b'
+              }
+            }}
+          >
+            View Payments
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Filters */}
+      <Paper 
+        sx={{ 
+          p: 3, 
+          mb: 4, 
+          borderRadius: 3,
+          border: '1px solid rgba(74, 124, 89, 0.1)',
+          backgroundColor: 'rgba(74, 124, 89, 0.02)'
+        }}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: 2, 
+          alignItems: 'center'
+        }}>
+          <TextField
+            label="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            variant="outlined"
+            size="small"
+            sx={{ 
+              minWidth: 250,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white'
+              }
+            }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ color: '#4a7c59', mr: 1 }} />
+            }}
+          />
+          
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Status"
+              onChange={(e) => setStatusFilter(e.target.value)}
+              size="small"
+              sx={{ 
+                backgroundColor: 'white',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(74, 124, 89, 0.3)',
+                }
+              }}
+            >
+              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="success">Success</MenuItem>
+              <MenuItem value="failed">Failed</MenuItem>
+              <MenuItem value="pending">Pending</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Date From"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            variant="outlined"
+            size="small"
+            sx={{ 
+              minWidth: 150,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white'
+              }
+            }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+
+          <TextField
+            label="Date To"
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            variant="outlined"
+            size="small"
+            sx={{ 
+              minWidth: 150,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white'
+              }
+            }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+
+          <Button
+            startIcon={<CloseIcon />}
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+              setDateFrom('');
+              setDateTo('');
+            }}
+            sx={{ 
+              color: '#f44336',
+              borderColor: '#f44336',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                borderColor: '#d32f2f'
+              }
+            }}
+            variant="outlined"
+          >
+            Clear Filters
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Results Summary */}
+      <Box sx={{ 
+        mb: 3, 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 2
+      }}>
+        <Typography variant="h6" color="text.secondary">
+          Showing {paginatedReceipts.length} of {filteredReceipts.length} receipts
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Page {page} of {Math.ceil(filteredReceipts.length / rowsPerPage)}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Receipts Table */}
+      <Paper sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: 'rgba(74, 124, 89, 0.05)' }}>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 150 }}>
+                  Receipt Number
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 150 }}>
+                  Payment Reference
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 120 }}>
+                  Phone Number
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 100 }}>
+                  Amount
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 120 }}>
+                  Status
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 150 }}>
+                  Generated By
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 120 }}>
+                  Date
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: '#4a7c59', minWidth: 100 }}>
+                  Actions
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedReceipts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        No receipts found
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                        {filteredReceipts.length === 0 && searchTerm ? 
+                          'No receipts match your search criteria' : 
+                          'Receipts are automatically generated when payments are successful'
+                        }
+                      </Typography>
+                      <Button 
+                        variant="contained" 
+                        onClick={() => navigate('/payments')}
+                        sx={{ 
+                          backgroundColor: '#4a7c59', 
+                          '&:hover': { 
+                            backgroundColor: '#3d664b' 
+                          }
+                        }}
+                      >
+                        View Payments
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedReceipts.map((receipt) => (
+                  <TableRow 
+                    key={receipt.id}
+                    sx={{ 
+                      '&:hover': { 
+                        backgroundColor: 'rgba(74, 124, 89, 0.02)',
+                        transition: 'background-color 0.2s ease-in-out'
+                      },
+                      '&:last-child td, &:last-child th': { border: 0 }
+                    }}
+                  >
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'monospace' }}>
+                        {receipt.receipt_number}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                        {receipt.payment?.reference_id}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {receipt.payment?.phone_number}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#4a7c59' }}>
+                        KSH {receipt.payment?.amount.toLocaleString()}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip 
+                        label={receipt.payment ? getStatusColor(receipt.payment.status).label : 'N/A'} 
+                        color={receipt.payment ? getStatusColor(receipt.payment.status).color : 'default'} 
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {receipt.staff_member?.first_name} {receipt.staff_member?.last_name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2">
+                        {new Date(receipt.generated_at).toLocaleDateString()}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(receipt.generated_at).toLocaleTimeString()}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton 
+                          onClick={() => handleViewReceipt(receipt)}
+                          size="small"
+                          sx={{ 
+                            color: '#4a7c59',
+                            '&:hover': {
+                              backgroundColor: 'rgba(74, 124, 89, 0.1)'
+                            }
+                          }}
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                        <IconButton 
+                          onClick={() => printReceipt(receipt)}
+                          size="small"
+                          sx={{ 
+                            color: '#4a7c59',
+                            '&:hover': {
+                              backgroundColor: 'rgba(74, 124, 89, 0.1)'
+                            }
+                          }}
+                        >
+                          <PrintIcon />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Pagination */}
+        {filteredReceipts.length > rowsPerPage && (
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              count={Math.ceil(filteredReceipts.length / rowsPerPage)}
+              page={page}
+              onChange={(event, value) => setPage(value)}
+              color="primary"
+              variant="outlined"
+              shape="rounded"
+            />
+          </Box>
+        )}
+      </Paper>
+
+      {/* Receipt Details Dialog */}
+      <Dialog
+        open={showReceiptDialog}
+        onClose={handleCloseReceiptDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { 
+            borderRadius: 3,
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }
+        }}
+      >
+        {selectedReceipt && (
+          <>
+            <DialogTitle sx={{ 
+              backgroundColor: 'rgba(74, 124, 89, 0.05)',
+              borderBottom: '1px solid rgba(74, 124, 89, 0.1)',
+              color: '#4a7c59',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              Receipt Details
+              <IconButton
+                aria-label="close"
+                onClick={handleCloseReceiptDialog}
+                sx={{ color: '#4a7c59' }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ pb: 2 }}>
+              <Box sx={{ 
+                p: 3, 
+                backgroundColor: 'rgba(74, 124, 89, 0.05)', 
+                borderRadius: 2,
+                mb: 3
+              }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#4a7c59' }}>
+                    RECEIPT #{selectedReceipt.receipt_number}
+                  </Typography>
+                  <Chip 
+                    label={selectedReceipt.payment?.status.toUpperCase()} 
+                    color={selectedReceipt.payment ? getStatusColor(selectedReceipt.payment.status).color : 'default'} 
+                    size="small"
+                    sx={{ fontWeight: 'bold' }}
+                  />
+                </Box>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    Serial Number: {selectedReceipt.serial_number}
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary">
+                    Generated: {new Date(selectedReceipt.generated_at).toLocaleString()}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Transaction Details
+                  </Typography>
+                  <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 1, mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Payment Reference: {selectedReceipt.payment?.reference_id}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Phone Number: {selectedReceipt.payment?.phone_number}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Amount: KSH {selectedReceipt.payment?.amount.toLocaleString()}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Payment Method: {selectedReceipt.payment?.get_payment_method_display?.() || selectedReceipt.payment?.payment_method}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Status: {selectedReceipt.payment?.get_status_display?.() || selectedReceipt.payment?.status}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Generated By
+                  </Typography>
+                  <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 1, mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {selectedReceipt.staff_member?.first_name} {selectedReceipt.staff_member?.last_name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      {selectedReceipt.staff_member?.username}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {selectedReceipt.staff_member?.user_type}
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                {selectedReceipt.payment?.description && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Description
+                    </Typography>
+                    <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 1, mb: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {selectedReceipt.payment?.description}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Receipt Information
+                  </Typography>
+                  <Box sx={{ p: 2, backgroundColor: 'white', borderRadius: 1 }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      This receipt was automatically generated by Dewlon Systems upon successful payment.
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      For inquiries, please contact us at 0728722746.
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, justifyContent: 'center' }}>
+              <Button 
+                onClick={() => printReceipt(selectedReceipt)}
+                startIcon={<PrintIcon />}
+                variant="contained"
+                sx={{ 
+                  backgroundColor: '#4a7c59',
+                  '&:hover': { backgroundColor: '#3d664b' }
+                }}
+              >
+                Print Receipt
+              </Button>
+              <Button 
+                onClick={() => exportToPDF()}
+                startIcon={<DownloadIcon />}
+                variant="outlined"
+                sx={{ 
+                  color: '#4a7c59', 
+                  borderColor: '#4a7c59',
+                  ml: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(74, 124, 89, 0.1)',
+                    borderColor: '#3d664b'
+                  }
+                }}
+              >
+                Download PDF
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </Container>
+  );
+};
+
+export default ReceiptList;

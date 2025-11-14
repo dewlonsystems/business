@@ -1,0 +1,825 @@
+// src/components/PaymentList.jsx
+import React, { useState, useEffect } from 'react';
+import { 
+  Container, 
+  Typography, 
+  Paper, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Grid,
+  Card,
+  CardContent,
+  Pagination,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Skeleton,
+  Divider
+} from '@mui/material';
+import {
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  Refresh as RefreshIcon,
+  Download as DownloadIcon,
+  Visibility as VisibilityIcon,
+  Close as CloseIcon
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { paymentAPI } from '../services/api';
+
+const PaymentList = () => {
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [methodFilter, setMethodFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedPayment, setSelectedPayment] = useState(null);
+  const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      setLoading(true);
+      // Simulate loading for better UX
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const response = await paymentAPI.getPaymentList();
+      setPayments(response.data);
+    } catch (error) {
+      console.error('Error fetching payments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'success':
+        return { color: 'success', label: 'Success' };
+      case 'failed':
+        return { color: 'error', label: 'Failed' };
+      case 'pending':
+        return { color: 'warning', label: 'Pending' };
+      case 'processing':
+        return { color: 'info', label: 'Processing' };
+      case 'cancelled':
+        return { color: 'default', label: 'Cancelled' };
+      case 'timeout':
+        return { color: 'secondary', label: 'Timeout' };
+      default:
+        return { color: 'default', label: status };
+    }
+  };
+
+  const getPaymentMethodIcon = (method) => {
+    switch (method) {
+      case 'mpesa':
+        return '📱';
+      case 'paystack':
+        return '💳';
+      case 'qr':
+        return '🔢';
+      default:
+        return '💰';
+    }
+  };
+
+  const filteredPayments = payments.filter(payment => {
+    const matchesSearch = payment.phone_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         payment.reference_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         payment.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
+    const matchesMethod = methodFilter === 'all' || payment.payment_method === methodFilter;
+    
+    return matchesSearch && matchesStatus && matchesMethod;
+  });
+
+  const paginatedPayments = filteredPayments.slice(
+    (page - 1) * rowsPerPage,
+    page * rowsPerPage
+  );
+
+  const handleViewDetails = (payment) => {
+    setSelectedPayment(payment);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedPayment(null);
+  };
+
+  const exportToCSV = () => {
+    alert('CSV export functionality would be implemented here');
+  };
+
+  const exportToPDF = () => {
+    alert('PDF export functionality would be implemented here');
+  };
+
+  if (loading) {
+    return (
+      <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
+        {/* Header Skeleton */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+          <Skeleton variant="text" width={250} height={40} />
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Skeleton variant="rectangular" width={100} height={40} sx={{ borderRadius: 2 }} />
+            <Skeleton variant="rectangular" width={100} height={40} sx={{ borderRadius: 2 }} />
+          </Box>
+        </Box>
+
+        {/* Filters Skeleton */}
+        <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            {[...Array(4)].map((_, index) => (
+              <Skeleton key={index} variant="rectangular" width="100%" height={56} sx={{ borderRadius: 1 }} />
+            ))}
+          </Box>
+        </Paper>
+
+        {/* Table Skeleton */}
+        <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {[...Array(7)].map((_, index) => (
+                    <TableCell key={index}>
+                      <Skeleton variant="text" width={80} />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {[...Array(10)].map((_, index) => (
+                  <TableRow key={index}>
+                    {[...Array(7)].map((_, cellIndex) => (
+                      <TableCell key={cellIndex}>
+                        <Skeleton variant="text" width={60} />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      </Container>
+    );
+  }
+
+  return (
+    <Container 
+      maxWidth="xl" 
+      sx={{ 
+        mt: 4, 
+        mb: 4, 
+        px: { xs: 2, sm: 3, md: 4 },
+        overflowX: 'hidden'
+      }}
+    >
+      {/* Header */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 4,
+        flexWrap: 'wrap',
+        gap: 2
+      }}>
+        <Typography 
+          variant="h3" 
+          component="h1" 
+          sx={{ 
+            color: '#333',
+            fontWeight: 700,
+            fontSize: { xs: '1.8rem', sm: '2rem', md: '2.5rem' },
+            flexGrow: 1
+          }}
+        >
+          Payment History
+        </Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 1, 
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end'
+        }}>
+          <Button 
+            variant="outlined" 
+            startIcon={<RefreshIcon />}
+            onClick={fetchPayments}
+            sx={{ 
+              color: '#4a7c59', 
+              borderColor: '#4a7c59',
+              textTransform: 'none',
+              fontWeight: 600,
+              minWidth: isMobile ? 'auto' : 100,
+              px: isMobile ? 1 : 2,
+              '&:hover': {
+                backgroundColor: 'rgba(74, 124, 89, 0.1)',
+                borderColor: '#3d664b'
+              }
+            }}
+          >
+            {!isMobile && "Refresh"}
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<DownloadIcon />}
+            onClick={exportToCSV}
+            sx={{ 
+              color: '#4a7c59', 
+              borderColor: '#4a7c59',
+              textTransform: 'none',
+              fontWeight: 600,
+              minWidth: isMobile ? 'auto' : 120,
+              px: isMobile ? 1 : 2,
+              '&:hover': {
+                backgroundColor: 'rgba(74, 124, 89, 0.1)',
+                borderColor: '#3d664b'
+              }
+            }}
+          >
+            {!isMobile && "Export CSV"}
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate('/payment')}
+            sx={{ 
+              backgroundColor: '#4a7c59', 
+              textTransform: 'none',
+              fontWeight: 600,
+              minWidth: isMobile ? 'auto' : 140,
+              px: isMobile ? 1 : 3,
+              '&:hover': {
+                backgroundColor: '#3d664b'
+              }
+            }}
+          >
+            New Payment
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Filters */}
+      <Paper 
+        sx={{ 
+          p: 3, 
+          mb: 4, 
+          borderRadius: 3,
+          border: '1px solid rgba(74, 124, 89, 0.1)',
+          backgroundColor: 'rgba(74, 124, 89, 0.02)'
+        }}
+      >
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: 2, 
+          alignItems: isMobile ? 'stretch' : 'center',
+          flexWrap: 'wrap'
+        }}>
+          <TextField
+            label="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            variant="outlined"
+            size="small"
+            fullWidth={isMobile}
+            sx={{ 
+              minWidth: isMobile ? '100%' : 250,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white',
+                width: '100%'
+              }
+            }}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ color: '#4a7c59', mr: 1 }} />,
+              style: { width: '100%' }
+            }}
+          />
+          
+          <FormControl sx={{ minWidth: isMobile ? '100%' : 150 }} size="small">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Status"
+              onChange={(e) => setStatusFilter(e.target.value)}
+              sx={{ 
+                backgroundColor: 'white',
+                width: '100%',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(74, 124, 89, 0.3)',
+                }
+              }}
+            >
+              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="pending">Pending</MenuItem>
+              <MenuItem value="processing">Processing</MenuItem>
+              <MenuItem value="success">Success</MenuItem>
+              <MenuItem value="failed">Failed</MenuItem>
+              <MenuItem value="cancelled">Cancelled</MenuItem>
+              <MenuItem value="timeout">Timeout</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl sx={{ minWidth: isMobile ? '100%' : 150 }} size="small">
+            <InputLabel>Method</InputLabel>
+            <Select
+              value={methodFilter}
+              label="Method"
+              onChange={(e) => setMethodFilter(e.target.value)}
+              sx={{ 
+                backgroundColor: 'white',
+                width: '100%',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  borderColor: 'rgba(74, 124, 89, 0.3)',
+                }
+              }}
+            >
+              <MenuItem value="all">All Methods</MenuItem>
+              <MenuItem value="mpesa">Mpesa</MenuItem>
+              <MenuItem value="paystack">Paystack</MenuItem>
+              <MenuItem value="qr">QR Code</MenuItem>
+            </Select>
+          </FormControl>
+
+          <TextField
+            label="Date From"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            variant="outlined"
+            size="small"
+            fullWidth={isMobile}
+            sx={{ 
+              minWidth: isMobile ? '100%' : 150,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white',
+                width: '100%'
+              }
+            }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+
+          <TextField
+            label="Date To"
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            variant="outlined"
+            size="small"
+            fullWidth={isMobile}
+            sx={{ 
+              minWidth: isMobile ? '100%' : 150,
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'white',
+                width: '100%'
+              }
+            }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+
+          <Button
+            startIcon={<CloseIcon />}
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+              setMethodFilter('all');
+              setDateFrom('');
+              setDateTo('');
+            }}
+            sx={{ 
+              color: '#f44336',
+              borderColor: '#f44336',
+              textTransform: 'none',
+              fontWeight: 600,
+              minWidth: isMobile ? '100%' : 'auto',
+              px: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                borderColor: '#d32f2f'
+              }
+            }}
+            variant="outlined"
+            fullWidth={isMobile}
+          >
+            Clear Filters
+          </Button>
+        </Box>
+      </Paper>
+
+      {/* Results Summary */}
+      <Box sx={{ 
+        mb: 3, 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 2
+      }}>
+        <Typography variant="h6" color="text.secondary">
+          Showing {paginatedPayments.length} of {filteredPayments.length} payments
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Page {page} of {Math.ceil(filteredPayments.length / rowsPerPage)}
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Payments Table */}
+      <Paper sx={{ 
+        borderRadius: 3, 
+        overflow: 'hidden', 
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+        maxHeight: 'calc(100vh - 300px)',
+        overflowY: 'auto'
+      }}>
+        <TableContainer sx={{ 
+          maxHeight: 'calc(100vh - 350px)',
+          overflowX: 'hidden'
+        }}>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: 'rgba(74, 124, 89, 0.05)' }}>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#4a7c59',
+                    minWidth: isMobile ? 120 : 150,
+                    maxWidth: isMobile ? 150 : 200,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  Reference ID
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#4a7c59',
+                    minWidth: isMobile ? 100 : 120,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Phone Number
+                </TableCell>
+                <TableCell 
+                  align="right"
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#4a7c59',
+                    minWidth: isMobile ? 80 : 100,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Amount
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#4a7c59',
+                    minWidth: isMobile ? 80 : 100,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Status
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#4a7c59',
+                    minWidth: isMobile ? 100 : 120,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Method
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#4a7c59',
+                    minWidth: isMobile ? 120 : 150,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Date
+                </TableCell>
+                <TableCell 
+                  sx={{ 
+                    fontWeight: 600, 
+                    color: '#4a7c59',
+                    minWidth: isMobile ? 80 : 100,
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Actions
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedPayments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        No payments found
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                        {filteredPayments.length === 0 && searchTerm ? 
+                          'No payments match your search criteria' : 
+                          'Start by initiating your first payment'
+                        }
+                      </Typography>
+                      <Button 
+                        variant="contained" 
+                        onClick={() => navigate('/payment')}
+                        sx={{ 
+                          backgroundColor: '#4a7c59', 
+                          '&:hover': { 
+                            backgroundColor: '#3d664b' 
+                          }
+                        }}
+                      >
+                        Initiate Payment
+                      </Button>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedPayments.map((payment) => (
+                  <TableRow 
+                    key={payment.id}
+                    sx={{ 
+                      '&:hover': { 
+                        backgroundColor: 'rgba(74, 124, 89, 0.02)',
+                        transition: 'background-color 0.2s ease-in-out'
+                      },
+                      '&:last-child td, &:last-child th': { border: 0 }
+                    }}
+                  >
+                    <TableCell 
+                      sx={{ 
+                        fontFamily: 'monospace',
+                        fontSize: '0.875rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: isMobile ? 150 : 200
+                      }}
+                    >
+                      {payment.reference_id}
+                    </TableCell>
+                    <TableCell 
+                      sx={{ 
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {payment.phone_number}
+                    </TableCell>
+                    <TableCell 
+                      align="right"
+                      sx={{ 
+                        fontWeight: 600, 
+                        color: '#4a7c59',
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      KSH {payment.amount.toLocaleString()}
+                    </TableCell>
+                    <TableCell 
+                      sx={{ 
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <Chip 
+                        label={getStatusColor(payment.status).label} 
+                        color={getStatusColor(payment.status).color} 
+                        size="small"
+                        sx={{ fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell 
+                      sx={{ 
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <span>{getPaymentMethodIcon(payment.payment_method)}</span>
+                        <Typography variant="body2" textTransform="capitalize">
+                          {payment.payment_method}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell 
+                      sx={{ 
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="body2">
+                          {new Date(payment.created_at).toLocaleDateString()}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(payment.created_at).toLocaleTimeString()}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell 
+                      sx={{ 
+                        whiteSpace: 'nowrap',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      <IconButton 
+                        onClick={() => handleViewDetails(payment)}
+                        size="small"
+                        sx={{ 
+                          color: '#4a7c59',
+                          '&:hover': {
+                            backgroundColor: 'rgba(74, 124, 89, 0.1)'
+                          }
+                        }}
+                      >
+                        <VisibilityIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* Pagination */}
+        {filteredPayments.length > rowsPerPage && (
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              count={Math.ceil(filteredPayments.length / rowsPerPage)}
+              page={page}
+              onChange={(event, value) => setPage(value)}
+              color="primary"
+              variant="outlined"
+              shape="rounded"
+            />
+          </Box>
+        )}
+      </Paper>
+
+      {/* Payment Details Dialog */}
+      <Dialog 
+        open={!!selectedPayment} 
+        onClose={handleCloseDetails}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { 
+            borderRadius: 3,
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }
+        }}
+      >
+        {selectedPayment && (
+          <>
+            <DialogTitle sx={{ 
+              backgroundColor: 'rgba(74, 124, 89, 0.05)',
+              borderBottom: '1px solid rgba(74, 124, 89, 0.1)',
+              color: '#4a7c59'
+            }}>
+              Payment Details
+              <IconButton
+                aria-label="close"
+                onClick={handleCloseDetails}
+                sx={{
+                  position: 'absolute',
+                  right: 8,
+                  top: 8,
+                  color: '#4a7c59',
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ pb: 2 }}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Reference ID
+                  </Typography>
+                  <Typography variant="body1" sx={{ 
+                    fontFamily: 'monospace', 
+                    wordBreak: 'break-all',
+                    fontSize: '0.875rem'
+                  }}>
+                    {selectedPayment.reference_id}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Status
+                  </Typography>
+                  <Chip 
+                    label={getStatusColor(selectedPayment.status).label} 
+                    color={getStatusColor(selectedPayment.status).color} 
+                    size="small"
+                    sx={{ fontWeight: 600 }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Phone Number
+                  </Typography>
+                  <Typography variant="body1">
+                    {selectedPayment.phone_number}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Amount
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 600, color: '#4a7c59' }}>
+                    KSH {selectedPayment.amount.toLocaleString()}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Payment Method
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <span>{getPaymentMethodIcon(selectedPayment.payment_method)}</span>
+                    <Typography variant="body1" textTransform="capitalize">
+                      {selectedPayment.payment_method}
+                    </Typography>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Date
+                  </Typography>
+                  <Typography variant="body1">
+                    {new Date(selectedPayment.created_at).toLocaleString()}
+                  </Typography>
+                </Grid>
+                {selectedPayment.description && (
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Description
+                    </Typography>
+                    <Typography variant="body1">
+                      {selectedPayment.description}
+                    </Typography>
+                  </Grid>
+                )}
+              </Grid>
+            </DialogContent>
+            <DialogActions sx={{ p: 2 }}>
+              <Button onClick={handleCloseDetails} sx={{ color: '#4a7c59' }}>
+                Close
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+    </Container>
+  );
+};
+
+export default PaymentList;
