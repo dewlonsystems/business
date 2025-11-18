@@ -2,6 +2,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
+console.log("API_BASE_URL is:", API_BASE_URL); // Debug log to ensure correct backend URL
 
 // Create base API instance for authenticated requests
 const api = axios.create({
@@ -13,8 +14,8 @@ const api = axios.create({
 // Create auth API instance for authentication requests (no automatic token)
 const authApi = axios.create({
   baseURL: API_BASE_URL,
-  xsrfCookieName: false,  // Disable CSRF
-  xsrfHeaderName: false,  // Disable CSRF
+  xsrfCookieName: false,
+  xsrfHeaderName: false,
 });
 
 // Add token to requests automatically for the main API (authenticated endpoints)
@@ -24,18 +25,56 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Token ${token}`;
   }
   return config;
+}, (error) => {
+  return Promise.reject(error);
 });
 
 // Account services (use authApi which doesn't auto-add tokens)
 export const authAPI = {
-  login: (credentials) => authApi.post('/accounts/login/', credentials),
-  register: (userData) => authApi.post('/accounts/register/', userData),
-  logout: () => {
-    // Remove token from localStorage and then make the API call
-    localStorage.removeItem('token');
-    return api.post('/accounts/logout/'); // Use regular API after removing token
+  login: async (credentials) => {
+    console.log("Logging in with:", credentials); // Debug login data
+    try {
+      const response = await authApi.post('/accounts/login/', credentials, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      console.log("Login response:", response.data); // Debug response
+      return response;
+    } catch (error) {
+      if (error.response) {
+        console.error("Login error response:", error.response.data);
+      } else {
+        console.error("Login error:", error.message);
+      }
+      throw error;
+    }
   },
-  getProfile: () => api.get('/accounts/profile/'), // Use regular API after login
+
+  register: (userData) => authApi.post('/accounts/register/', userData, {
+    headers: { 'Content-Type': 'application/json' }
+  }),
+
+  logout: async () => {
+    localStorage.removeItem('token');
+    try {
+      const response = await api.post('/accounts/logout/');
+      console.log("Logout response:", response.data);
+      return response;
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
+    }
+  },
+
+  getProfile: async () => {
+    try {
+      const response = await api.get('/accounts/profile/');
+      console.log("Profile response:", response.data);
+      return response;
+    } catch (error) {
+      console.error("GetProfile error:", error);
+      throw error;
+    }
+  },
 };
 
 // Payment services (require authentication)
