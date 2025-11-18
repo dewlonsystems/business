@@ -121,6 +121,7 @@ class PaystackService:
         self.secret_key = config('PAYSTACK_SECRET_KEY', default='')
         self.public_key = config('PAYSTACK_PUBLIC_KEY', default='')
         self.base_url = 'https://api.paystack.co'
+        self.frontend_url = config('FRONTEND_URL', default='http://localhost:3000')
     
     def initialize_transaction(self, email, amount, phone_number, reference):
         """Initialize a Paystack transaction"""
@@ -148,7 +149,7 @@ class PaystackService:
                     }
                 ]
             },
-            "callback_url": f"http://localhost:3000/payment-status/{reference}",  # Update this to your frontend URL
+            "callback_url": f"{self.frontend_url}/payment-status/{reference}",
             "channels": ["card", "bank", "ussd", "qr", "mobile_money", "bank_transfer"]
         }
         
