@@ -27,8 +27,9 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const Sidebar = ({ isMobile }) => {
+const Sidebar = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // 👈 Auto-detect mobile
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -62,6 +63,7 @@ const Sidebar = ({ isMobile }) => {
 
   const drawer = (
     <div>
+      {/* Header Section */}
       <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography 
           variant="h6" 
@@ -80,6 +82,8 @@ const Sidebar = ({ isMobile }) => {
         )}
       </Box>
       <Divider />
+      
+      {/* Menu Items */}
       <List>
         {menuItems.map((item, index) => (
           <div key={item.text}>
@@ -91,7 +95,7 @@ const Sidebar = ({ isMobile }) => {
                     handleMenuToggle();
                   } else {
                     navigate(item.path);
-                    if (isMobile) handleDrawerToggle();
+                    if (isMobile) handleDrawerToggle(); // 👈 Close drawer after navigation
                   }
                 }}
                 sx={{
@@ -131,7 +135,7 @@ const Sidebar = ({ isMobile }) => {
                       sx={{ pl: 4 }}
                       onClick={() => {
                         navigate(subItem.path);
-                        if (isMobile) handleDrawerToggle();
+                        if (isMobile) handleDrawerToggle(); // 👈 Close drawer after navigation
                       }}
                     >
                       <ListItemText primary={subItem.text} />
@@ -143,6 +147,8 @@ const Sidebar = ({ isMobile }) => {
           </div>
         ))}
       </List>
+      
+      {/* Footer */}
       <Divider sx={{ mt: 'auto', mb: 2 }} />
       <Box sx={{ p: 2, textAlign: 'center' }}>
         <Typography variant="caption" color="text.secondary">
@@ -154,28 +160,63 @@ const Sidebar = ({ isMobile }) => {
 
   return (
     <>
-      {!isMobile ? (
+      {/* Hamburger Button for Mobile */}
+      {isMobile && (
+        <IconButton
+          color="inherit"
+          aria-label="open drawer"
+          edge="start"
+          onClick={handleDrawerToggle}
+          sx={{ 
+            mr: 2, 
+            display: { md: 'none' }, // 👈 Hide on desktop
+            position: 'fixed',        // 👈 Position it on screen
+            top: 8,
+            left: 8,
+            zIndex: 1300,           // 👈 Above other content
+            backgroundColor: '#4a7c59',
+            '&:hover': {
+              backgroundColor: '#3d664b',
+            }
+          }}
+        >
+          <MenuIcon />
+        </IconButton>
+      )}
+      
+      {/* Desktop Permanent Drawer */}
+      {!isMobile && (
         <Drawer
           variant="permanent"
           sx={{
             width: drawerWidth,
             flexShrink: 0,
-            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+            [`& .MuiDrawer-paper`]: { 
+              width: drawerWidth, 
+              boxSizing: 'border-box',
+              top: '64px', // 👈 Account for header height
+              height: 'calc(100vh - 64px)', // 👈 Full height minus header
+            },
           }}
         >
           {drawer}
         </Drawer>
-      ) : (
+      )}
+      
+      {/* Mobile Temporary Drawer */}
+      {isMobile && (
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             '& .MuiDrawer-paper': {
               width: drawerWidth,
+              top: '56px', // 👈 Account for mobile header height
+              height: 'calc(100vh - 56px)', // 👈 Full height minus header
             },
           }}
         >
