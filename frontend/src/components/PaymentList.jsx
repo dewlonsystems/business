@@ -167,7 +167,7 @@ const PaymentList = () => {
         {/* Table Skeleton */}
         <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
           <Box sx={{ 
-            overflowX: 'auto', // Allow horizontal scroll within card
+            overflowX: 'auto',
             maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)',
             overflowY: 'auto'
           }}>
@@ -501,35 +501,37 @@ const PaymentList = () => {
                     sx={{ 
                       fontWeight: 600, 
                       color: '#4a7c59',
-                      minWidth: isMobile ? 120 : isTablet ? 140 : 160, // Reasonable widths
-                      maxWidth: isMobile ? 150 : isTablet ? 180 : 200,
+                      minWidth: isMobile ? 100 : isTablet ? 120 : 140,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      padding: '8px 12px'
                     }}
                   >
-                    Reference ID
+                    Ref ID
                   </TableCell>
                   <TableCell 
                     sx={{ 
                       fontWeight: 600, 
                       color: '#4a7c59',
-                      minWidth: isMobile ? 100 : isTablet ? 120 : 140,
+                      minWidth: isMobile ? 80 : isTablet ? 100 : 120,
                       whiteSpace: 'nowrap',
-                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      padding: '8px 12px'
                     }}
                   >
-                    Phone Number
+                    Phone
                   </TableCell>
                   <TableCell 
                     align="right"
                     sx={{ 
                       fontWeight: 600, 
                       color: '#4a7c59',
-                      minWidth: isMobile ? 90 : isTablet ? 110 : 130,
+                      minWidth: isMobile ? 70 : isTablet ? 80 : 100,
                       whiteSpace: 'nowrap',
-                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      padding: '8px 12px'
                     }}
                   >
                     Amount
@@ -538,9 +540,10 @@ const PaymentList = () => {
                     sx={{ 
                       fontWeight: 600, 
                       color: '#4a7c59',
-                      minWidth: isMobile ? 80 : isTablet ? 100 : 120,
+                      minWidth: isMobile ? 70 : isTablet ? 80 : 100,
                       whiteSpace: 'nowrap',
-                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      padding: '8px 12px'
                     }}
                   >
                     Status
@@ -549,9 +552,10 @@ const PaymentList = () => {
                     sx={{ 
                       fontWeight: 600, 
                       color: '#4a7c59',
-                      minWidth: isMobile ? 80 : isTablet ? 100 : 120,
+                      minWidth: isMobile ? 70 : isTablet ? 80 : 100,
                       whiteSpace: 'nowrap',
-                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      padding: '8px 12px'
                     }}
                   >
                     Method
@@ -560,9 +564,10 @@ const PaymentList = () => {
                     sx={{ 
                       fontWeight: 600, 
                       color: '#4a7c59',
-                      minWidth: isMobile ? 110 : isTablet ? 130 : 150,
+                      minWidth: isMobile ? 90 : isTablet ? 100 : 120,
                       whiteSpace: 'nowrap',
-                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      padding: '8px 12px'
                     }}
                   >
                     Date
@@ -571,9 +576,10 @@ const PaymentList = () => {
                     sx={{ 
                       fontWeight: 600, 
                       color: '#4a7c59',
-                      minWidth: isMobile ? 70 : isTablet ? 90 : 110,
+                      minWidth: isMobile ? 60 : isTablet ? 70 : 80,
                       whiteSpace: 'nowrap',
-                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                      fontSize: isMobile ? '0.75rem' : '0.875rem',
+                      padding: '8px 12px'
                     }}
                   >
                     Actions
@@ -628,7 +634,8 @@ const PaymentList = () => {
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
-                          maxWidth: isMobile ? 120 : isTablet ? 150 : 180
+                          maxWidth: isMobile ? 100 : isTablet ? 120 : 140,
+                          padding: '8px 12px'
                         }}
                       >
                         {payment.reference_id}
@@ -636,7 +643,8 @@ const PaymentList = () => {
                       <TableCell 
                         sx={{ 
                           whiteSpace: 'nowrap',
-                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          padding: '8px 12px'
                         }}
                       >
                         {payment.phone_number}
@@ -647,7 +655,8 @@ const PaymentList = () => {
                           fontWeight: 600, 
                           color: '#4a7c59',
                           whiteSpace: 'nowrap',
-                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          padding: '8px 12px'
                         }}
                       >
                         KSH {payment.amount.toLocaleString()}
@@ -655,7 +664,8 @@ const PaymentList = () => {
                       <TableCell 
                         sx={{ 
                           whiteSpace: 'nowrap',
-                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          padding: '8px 12px'
                         }}
                       >
                         <Chip 
@@ -671,7 +681,8 @@ const PaymentList = () => {
                       <TableCell 
                         sx={{ 
                           whiteSpace: 'nowrap',
-                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          padding: '8px 12px'
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -686,7 +697,8 @@ const PaymentList = () => {
                       <TableCell 
                         sx={{ 
                           whiteSpace: 'nowrap',
-                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          padding: '8px 12px'
                         }}
                       >
                         <Box>
@@ -701,7 +713,8 @@ const PaymentList = () => {
                       <TableCell 
                         sx={{ 
                           whiteSpace: 'nowrap',
-                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          padding: '8px 12px'
                         }}
                       >
                         <IconButton 
