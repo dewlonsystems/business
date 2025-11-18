@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 from .models import Payment
 from .serializers import PaymentSerializer
@@ -137,6 +138,9 @@ def mpesa_callback(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+@csrf_exempt  # Add this decorator to exempt CSRF for external webhooks
+@api_view(['POST'])  # Specify that this view only handles POST requests
+@permission_classes([AllowAny])  # Allow requests from external sources
 def paystack_webhook(request):
     """Handle Paystack webhook"""
     if request.method == 'POST':
