@@ -24,6 +24,19 @@ class ReceiptGenerateView(generics.CreateAPIView):
     serializer_class = ReceiptSerializer
     permission_classes = [IsAuthenticated]
 
+    def perform_create(self, serializer):
+        payment_id = self.kwargs.get('payment_id')
+        payment = get_object_or_404(Payment, id=payment_id)
+        
+        # Check if receipt already exists
+        existing_receipt = Receipt.objects.filter(payment=payment).first()
+        if existing_receipt:
+            return existing_receipt
+        
+        # Generate new receipt
+        receipt = ReceiptGenerator.generate_receipt(payment)
+        return receipt
+
     def create(self, request, *args, **kwargs):
         payment_id = self.kwargs.get('payment_id')
         payment = get_object_or_404(Payment, id=payment_id)
@@ -39,15 +52,19 @@ class ReceiptGenerateView(generics.CreateAPIView):
         serializer = self.get_serializer(receipt)
         return Response(serializer.data, status=201)
 
-class ReceiptDownloadPDFView(generics.RetrieveAPIView):
+class ReceiptExportView(generics.RetrieveAPIView):
     queryset = Receipt.objects.all()
     permission_classes = [IsAuthenticated]
 
     def retrieve(self, request, *args, **kwargs):
         receipt = self.get_object()
-        pdf_bytes = ReceiptGenerator.generate_receipt_pdf_bytes(receipt)
-        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.serial_number}.pdf"'
+        
+        # Get the HTML content
+        html_content = ReceiptGenerator.generate_receipt_html(receipt)
+        
+        # Return as HTML response
+        response = HttpResponse(html_content, content_type='text/html')
+        response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.receipt_number}.html"'
         return response
 
 @api_view(['GET'])
