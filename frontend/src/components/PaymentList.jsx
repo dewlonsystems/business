@@ -58,6 +58,7 @@ const PaymentList = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('md', 'lg'));
 
   useEffect(() => {
     fetchPayments();
@@ -201,7 +202,7 @@ const PaymentList = () => {
         mt: 4, 
         mb: 4, 
         px: { xs: 2, sm: 3, md: 4 },
-        overflowX: 'hidden'
+        overflowX: 'hidden' // Prevent horizontal scroll on container
       }}
     >
       {/* Header */}
@@ -219,7 +220,7 @@ const PaymentList = () => {
           sx={{ 
             color: '#333',
             fontWeight: 700,
-            fontSize: { xs: '1.8rem', sm: '2rem', md: '2.5rem' },
+            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' }, // Reduced font size
             flexGrow: 1
           }}
         >
@@ -458,18 +459,20 @@ const PaymentList = () => {
         </Box>
       </Box>
 
-      {/* Payments Table */}
+      {/* Payments Table - Now with proper horizontal scrolling */}
       <Paper sx={{ 
         borderRadius: 3, 
         overflow: 'hidden', 
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-        maxHeight: 'calc(100vh - 300px)',
-        overflowY: 'auto'
+        overflowX: 'auto' // Allow horizontal scroll only for table
       }}>
-        <TableContainer sx={{ 
-          maxHeight: 'calc(100vh - 350px)',
-          overflowX: 'hidden'
-        }}>
+        <TableContainer 
+          sx={{ 
+            maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)', // Reduced height on mobile
+            overflowY: 'auto',
+            overflowX: 'auto' // Horizontal scroll for table
+          }}
+        >
           <Table stickyHeader>
             <TableHead>
               <TableRow sx={{ backgroundColor: 'rgba(74, 124, 89, 0.05)' }}>
@@ -477,32 +480,35 @@ const PaymentList = () => {
                   sx={{ 
                     fontWeight: 600, 
                     color: '#4a7c59',
-                    minWidth: isMobile ? 120 : 150,
-                    maxWidth: isMobile ? 150 : 200,
+                    minWidth: isMobile ? 100 : isTablet ? 120 : 140, // Reduced widths
+                    maxWidth: isMobile ? 120 : isTablet ? 150 : 180,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
-                    textOverflow: 'ellipsis'
+                    textOverflow: 'ellipsis',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem' // Smaller font on mobile
                   }}
                 >
-                  Reference ID
+                  Ref ID
                 </TableCell>
                 <TableCell 
                   sx={{ 
                     fontWeight: 600, 
                     color: '#4a7c59',
-                    minWidth: isMobile ? 100 : 120,
-                    whiteSpace: 'nowrap'
+                    minWidth: isMobile ? 80 : isTablet ? 100 : 120,
+                    whiteSpace: 'nowrap',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem'
                   }}
                 >
-                  Phone Number
+                  Phone
                 </TableCell>
                 <TableCell 
                   align="right"
                   sx={{ 
                     fontWeight: 600, 
                     color: '#4a7c59',
-                    minWidth: isMobile ? 80 : 100,
-                    whiteSpace: 'nowrap'
+                    minWidth: isMobile ? 70 : isTablet ? 80 : 100,
+                    whiteSpace: 'nowrap',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem'
                   }}
                 >
                   Amount
@@ -511,8 +517,9 @@ const PaymentList = () => {
                   sx={{ 
                     fontWeight: 600, 
                     color: '#4a7c59',
-                    minWidth: isMobile ? 80 : 100,
-                    whiteSpace: 'nowrap'
+                    minWidth: isMobile ? 70 : isTablet ? 80 : 100,
+                    whiteSpace: 'nowrap',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem'
                   }}
                 >
                   Status
@@ -521,8 +528,9 @@ const PaymentList = () => {
                   sx={{ 
                     fontWeight: 600, 
                     color: '#4a7c59',
-                    minWidth: isMobile ? 100 : 120,
-                    whiteSpace: 'nowrap'
+                    minWidth: isMobile ? 70 : isTablet ? 80 : 100,
+                    whiteSpace: 'nowrap',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem'
                   }}
                 >
                   Method
@@ -531,8 +539,9 @@ const PaymentList = () => {
                   sx={{ 
                     fontWeight: 600, 
                     color: '#4a7c59',
-                    minWidth: isMobile ? 120 : 150,
-                    whiteSpace: 'nowrap'
+                    minWidth: isMobile ? 90 : isTablet ? 100 : 120,
+                    whiteSpace: 'nowrap',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem'
                   }}
                 >
                   Date
@@ -541,8 +550,9 @@ const PaymentList = () => {
                   sx={{ 
                     fontWeight: 600, 
                     color: '#4a7c59',
-                    minWidth: isMobile ? 80 : 100,
-                    whiteSpace: 'nowrap'
+                    minWidth: isMobile ? 60 : isTablet ? 70 : 80,
+                    whiteSpace: 'nowrap',
+                    fontSize: isMobile ? '0.75rem' : '0.875rem'
                   }}
                 >
                   Actions
@@ -593,11 +603,11 @@ const PaymentList = () => {
                     <TableCell 
                       sx={{ 
                         fontFamily: 'monospace',
-                        fontSize: '0.875rem',
+                        fontSize: isMobile ? '0.7rem' : '0.8rem', // Smaller font
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        maxWidth: isMobile ? 150 : 200
+                        maxWidth: isMobile ? 100 : isTablet ? 120 : 140
                       }}
                     >
                       {payment.reference_id}
@@ -605,7 +615,7 @@ const PaymentList = () => {
                     <TableCell 
                       sx={{ 
                         whiteSpace: 'nowrap',
-                        fontSize: '0.875rem'
+                        fontSize: isMobile ? '0.7rem' : '0.8rem'
                       }}
                     >
                       {payment.phone_number}
@@ -616,7 +626,7 @@ const PaymentList = () => {
                         fontWeight: 600, 
                         color: '#4a7c59',
                         whiteSpace: 'nowrap',
-                        fontSize: '0.875rem'
+                        fontSize: isMobile ? '0.7rem' : '0.8rem'
                       }}
                     >
                       KSH {payment.amount.toLocaleString()}
@@ -624,25 +634,30 @@ const PaymentList = () => {
                     <TableCell 
                       sx={{ 
                         whiteSpace: 'nowrap',
-                        fontSize: '0.875rem'
+                        fontSize: isMobile ? '0.7rem' : '0.8rem'
                       }}
                     >
                       <Chip 
                         label={getStatusColor(payment.status).label} 
                         color={getStatusColor(payment.status).color} 
                         size="small"
-                        sx={{ fontWeight: 600 }}
+                        sx={{ 
+                          fontWeight: 600,
+                          fontSize: isMobile ? '0.65rem' : '0.75rem' // Smaller chip text
+                        }}
                       />
                     </TableCell>
                     <TableCell 
                       sx={{ 
                         whiteSpace: 'nowrap',
-                        fontSize: '0.875rem'
+                        fontSize: isMobile ? '0.7rem' : '0.8rem'
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <span>{getPaymentMethodIcon(payment.payment_method)}</span>
-                        <Typography variant="body2" textTransform="capitalize">
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <span style={{ fontSize: isMobile ? '0.8rem' : '1rem' }}>
+                          {getPaymentMethodIcon(payment.payment_method)}
+                        </span>
+                        <Typography variant="body2" textTransform="capitalize" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>
                           {payment.payment_method}
                         </Typography>
                       </Box>
@@ -650,22 +665,22 @@ const PaymentList = () => {
                     <TableCell 
                       sx={{ 
                         whiteSpace: 'nowrap',
-                        fontSize: '0.875rem'
+                        fontSize: isMobile ? '0.7rem' : '0.8rem'
                       }}
                     >
                       <Box>
-                        <Typography variant="body2">
+                        <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>
                           {new Date(payment.created_at).toLocaleDateString()}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(payment.created_at).toLocaleTimeString()}
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: isMobile ? '0.6rem' : '0.7rem' }}>
+                          {new Date(payment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </Typography>
                       </Box>
                     </TableCell>
                     <TableCell 
                       sx={{ 
                         whiteSpace: 'nowrap',
-                        fontSize: '0.875rem'
+                        fontSize: isMobile ? '0.7rem' : '0.8rem'
                       }}
                     >
                       <IconButton 
@@ -675,10 +690,11 @@ const PaymentList = () => {
                           color: '#4a7c59',
                           '&:hover': {
                             backgroundColor: 'rgba(74, 124, 89, 0.1)'
-                          }
+                          },
+                          p: 0.5 // Smaller padding
                         }}
                       >
-                        <VisibilityIcon />
+                        <VisibilityIcon sx={{ fontSize: isMobile ? '1rem' : '1.2rem' }} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
