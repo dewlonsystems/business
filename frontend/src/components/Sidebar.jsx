@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Drawer, 
   List, 
