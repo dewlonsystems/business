@@ -1,5 +1,5 @@
 // src/components/Sidebar.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Drawer, 
   List, 
@@ -27,17 +27,12 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen, handleDrawerToggle }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // 👈 Auto-detect mobile
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Auto-detect mobile
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [openMenu, setOpenMenu] = useState(false);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const [openMenu, setOpenMenu] = useState(false); // Local state for submenu
 
   const handleMenuToggle = () => {
     setOpenMenu(!openMenu);
@@ -95,7 +90,7 @@ const Sidebar = () => {
                     handleMenuToggle();
                   } else {
                     navigate(item.path);
-                    if (isMobile) handleDrawerToggle(); // 👈 Close drawer after navigation
+                    if (isMobile) handleDrawerToggle(); // Close drawer after navigation
                   }
                 }}
                 sx={{
@@ -135,7 +130,7 @@ const Sidebar = () => {
                       sx={{ pl: 4 }}
                       onClick={() => {
                         navigate(subItem.path);
-                        if (isMobile) handleDrawerToggle(); // 👈 Close drawer after navigation
+                        if (isMobile) handleDrawerToggle(); // Close drawer after navigation
                       }}
                     >
                       <ListItemText primary={subItem.text} />
@@ -169,11 +164,11 @@ const Sidebar = () => {
           onClick={handleDrawerToggle}
           sx={{ 
             mr: 2, 
-            display: { md: 'none' }, // 👈 Hide on desktop
-            position: 'fixed',        // 👈 Position it on screen
+            display: { md: 'none' }, 
+            position: 'fixed',        
             top: 8,
             left: 8,
-            zIndex: 1300,           // 👈 Above other content
+            zIndex: 1300,           
             backgroundColor: '#4a7c59',
             '&:hover': {
               backgroundColor: '#3d664b',
@@ -194,8 +189,8 @@ const Sidebar = () => {
             [`& .MuiDrawer-paper`]: { 
               width: drawerWidth, 
               boxSizing: 'border-box',
-              top: '64px', // 👈 Account for header height
-              height: 'calc(100vh - 64px)', // 👈 Full height minus header
+              top: '64px', 
+              height: 'calc(100vh - 64px)', 
             },
           }}
         >
@@ -215,8 +210,8 @@ const Sidebar = () => {
           sx={{
             '& .MuiDrawer-paper': {
               width: drawerWidth,
-              top: '56px', // 👈 Account for mobile header height
-              height: 'calc(100vh - 56px)', // 👈 Full height minus header
+              top: '56px', 
+              height: 'calc(100vh - 56px)', 
             },
           }}
         >
