@@ -1,20 +1,20 @@
 # receipts/services.py
 import uuid
 from datetime import datetime
+from django.template.loader import render_to_string
 from django.conf import settings
 from .models import Receipt
 from payments.models import Payment
-from io import BytesIO
-import pdfkit
-from openpyxl import Workbook
+import pdfkit  # pip install pdfkit
+import os
 
 class ReceiptGenerator:
     @staticmethod
     def generate_receipt(payment):
         """Generate a receipt for a successful payment"""
         from accounts.models import CustomUser
-
-        # Minimal data for lightweight receipt
+        
+        # Create receipt data
         receipt_data = {
             'transaction_time': payment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'masked_phone_number': ReceiptGenerator.mask_phone_number(payment.phone_number),
@@ -25,15 +25,18 @@ class ReceiptGenerator:
             'payment_method': payment.get_payment_method_display(),
             'status': payment.get_status_display(),
             'serial_number': f"SER_{datetime.now().strftime('%Y%m%d')}_{str(uuid.uuid4())[:8].upper()}",
+            'business_name': 'Dewlon Systems',
+            'business_address': 'Your business address here',
+            'business_contact': '0728722746',
         }
-
+        
+        # Create the receipt
         receipt = Receipt.objects.create(
             payment=payment,
             staff_member=payment.initiated_by,
             serial_number=receipt_data['serial_number'],
             receipt_data=receipt_data
         )
-
         return receipt
 
     @staticmethod
@@ -44,47 +47,18 @@ class ReceiptGenerator:
 
     @staticmethod
     def generate_receipt_html(receipt):
-        """Generate minimal HTML for PDF export"""
-        r = receipt.receipt_data
-        html_content = f"""
-        <div style="font-family:Arial,sans-serif;font-size:12px;max-width:400px;margin:auto;">
-            <h2 style="color:#4a7c59;">PAYMENT RECEIPT</h2>
-            <p><strong>Serial:</strong> {r['serial_number']}</p>
-            <p><strong>Transaction:</strong> {r['transaction_time']}</p>
-            <p><strong>Phone:</strong> {r['masked_phone_number']}</p>
-            <p><strong>Amount:</strong> KSH {r['amount']}</p>
-            <p><strong>Description:</strong> {r['description']}</p>
-            <p><strong>Reference:</strong> {r['reference_id']}</p>
-            <p><strong>Status:</strong> {r['status']}</p>
-            <p><strong>Initiated By:</strong> {r['initiated_by']}</p>
-        </div>
-        """
-        return html_content
+        """Render receipt HTML from template"""
+        return render_to_string('receipts/receipt_template.html', {'receipt': receipt})
 
     @staticmethod
     def generate_receipt_pdf_bytes(receipt):
-        """Generate PDF in memory"""
+        """Generate PDF bytes from HTML template"""
         html = ReceiptGenerator.generate_receipt_html(receipt)
-        pdf_bytes = pdfkit.from_string(html, False)  # returns bytes
+        # Optional: configure wkhtmltopdf path if needed
+        options = {
+            'page-size': 'A4',
+            'encoding': "UTF-8",
+            'quiet': ''
+        }
+        pdf_bytes = pdfkit.from_string(html, False, options=options)
         return pdf_bytes
-
-    @staticmethod
-    def generate_receipt_excel_bytes(receipt):
-        """Generate Excel in memory"""
-        r = receipt.receipt_data
-        wb = Workbook()
-        ws = wb.active
-        ws.append(['Serial', 'Transaction Time', 'Phone', 'Amount', 'Description', 'Reference', 'Status', 'Initiated By'])
-        ws.append([
-            r['serial_number'],
-            r['transaction_time'],
-            r['masked_phone_number'],
-            r['amount'],
-            r['description'],
-            r['reference_id'],
-            r['status'],
-            r['initiated_by']
-        ])
-        stream = BytesIO()
-        wb.save(stream)
-        return stream.getvalue()

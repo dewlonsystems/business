@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Receipt {{ receipt.serial_number }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: auto; font-size: 12px; }
+        h2 { color: #4a7c59; text-align: center; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .label { font-weight: bold; }
+        .amount { text-align: center; font-size: 18px; font-weight: bold; color: #4a7c59; margin: 15px 0; }
+        .footer { text-align: center; font-size: 10px; margin-top: 20px; color: #666; }
+    </style>
+</head>
+<body>
+    <h2>PAYMENT RECEIPT</h2>
+    <div class="row"><span class="label">Serial:</span> {{ receipt.serial_number }}</div>
+    <div class="row"><span class="label">Transaction:</span> {{ receipt.receipt_data.transaction_time }}</div>
+    <div class="row"><span class="label">Phone:</span> {{ receipt.receipt_data.masked_phone_number }}</div>
+    <div class="row"><span class="label">Amount:</span> KSH {{ receipt.receipt_data.amount }}</div>
+    <div class="row"><span class="label">Reference:</span> {{ receipt.receipt_data.reference_id }}</div>
+    <div class="row"><span class="label">Status:</span> {{ receipt.receipt_data.status }}</div>
+    <div class="row"><span class="label">Initiated By:</span> {{ receipt.receipt_data.initiated_by }}</div>
+    <div class="amount">KSH {{ receipt.receipt_data.amount }}</div>
+    <div class="footer">
+        {{ receipt.receipt_data.business_name }}<br/>
+        {{ receipt.receipt_data.business_address }}<br/>
+        Contact: {{ receipt.receipt_data.business_contact }}<br/>
+        All rights reserved
+    </div>
+</body>
+</html>

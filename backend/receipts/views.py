@@ -27,41 +27,38 @@ class ReceiptGenerateView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         payment_id = self.kwargs.get('payment_id')
         payment = get_object_or_404(Payment, id=payment_id)
-
-        # Check if receipt exists
-        receipt = Receipt.objects.filter(payment=payment).first()
-        if not receipt:
-            receipt = ReceiptGenerator.generate_receipt(payment)
-
+        
+        # Check if receipt already exists
+        existing_receipt = Receipt.objects.filter(payment=payment).first()
+        if existing_receipt:
+            serializer = self.get_serializer(existing_receipt)
+            return Response(serializer.data)
+        
+        # Generate new receipt
+        receipt = ReceiptGenerator.generate_receipt(payment)
         serializer = self.get_serializer(receipt)
         return Response(serializer.data, status=201)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def download_receipt_pdf(request, receipt_id):
-    """Download receipt as PDF"""
-    receipt = get_object_or_404(Receipt, id=receipt_id)
-    pdf_bytes = ReceiptGenerator.generate_receipt_pdf_bytes(receipt)
-    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.serial_number}.pdf"'
-    return response
+class ReceiptDownloadPDFView(generics.RetrieveAPIView):
+    queryset = Receipt.objects.all()
+    permission_classes = [IsAuthenticated]
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def export_receipt_excel(request, receipt_id):
-    """Export receipt as Excel"""
-    receipt = get_object_or_404(Receipt, id=receipt_id)
-    excel_bytes = ReceiptGenerator.generate_receipt_excel_bytes(receipt)
-    response = HttpResponse(excel_bytes, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.serial_number}.xlsx"'
-    return response
+    def retrieve(self, request, *args, **kwargs):
+        receipt = self.get_object()
+        pdf_bytes = ReceiptGenerator.generate_receipt_pdf_bytes(receipt)
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.serial_number}.pdf"'
+        return response
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_receipt_by_payment(request, payment_reference_id):
+    """Get receipt by payment reference ID"""
     payment = get_object_or_404(Payment, reference_id=payment_reference_id)
     receipt = Receipt.objects.filter(payment=payment).first()
+    
     if not receipt:
         return Response({'error': 'Receipt not found'}, status=404)
+    
     serializer = ReceiptSerializer(receipt)
     return Response(serializer.data)
