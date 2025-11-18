@@ -185,13 +185,14 @@ const PaymentForm = () => {
         px: { xs: 2, sm: 3, md: 4 }
       }}
     >
+      {/* Fixed Header Section - No Horizontal Scroll */}
       <Box sx={{ 
         display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
         justifyContent: 'space-between', 
-        alignItems: 'center', 
+        alignItems: 'flex-start', // Align to top instead of center
         mb: 4,
-        flexWrap: 'wrap',
-        gap: 2
+        gap: 2 // Add gap between elements
       }}>
         <Typography 
           variant="h3" 
@@ -199,7 +200,8 @@ const PaymentForm = () => {
           sx={{ 
             color: '#333',
             fontWeight: 700,
-            fontSize: { xs: '1.8rem', sm: '2rem', md: '2.5rem' }
+            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' }, // Smaller font sizes
+            mb: { xs: 1, sm: 0 } // Add margin bottom on mobile to separate from button
           }}
         >
           Initiate Payment
@@ -212,8 +214,9 @@ const PaymentForm = () => {
             borderColor: '#4a7c59',
             textTransform: 'none',
             fontWeight: 600,
-            px: 3,
+            px: 2, // Reduced padding
             py: 1,
+            minWidth: 'auto', // Allow button to shrink
             '&:hover': {
               backgroundColor: 'rgba(74, 124, 89, 0.1)',
               borderColor: '#3d664b'
@@ -450,8 +453,10 @@ const PaymentForm = () => {
           {/* Submit Button */}
           <Box sx={{ 
             display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
             justifyContent: 'space-between', 
             alignItems: 'center',
+            gap: 2, // Add gap between buttons on mobile
             mt: 3
           }}>
             <Button 
@@ -471,7 +476,9 @@ const PaymentForm = () => {
                 borderColor: '#f44336',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 3,
+                px: 2, // Reduced padding
+                py: 1,
+                width: { xs: '100%', sm: 'auto' }, // Full width on mobile
                 '&:hover': {
                   backgroundColor: 'rgba(244, 67, 54, 0.1)',
                   borderColor: '#d32f2f'
@@ -488,9 +495,10 @@ const PaymentForm = () => {
                 backgroundColor: '#4a7c59',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 4,
+                px: 3, // Reduced padding
                 py: 1.5,
                 fontSize: '1rem',
+                width: { xs: '100%', sm: 'auto' }, // Full width on mobile
                 '&:hover': {
                   backgroundColor: '#3d664b'
                 },
