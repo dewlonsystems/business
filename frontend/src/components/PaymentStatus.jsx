@@ -27,12 +27,18 @@ const PaymentStatus = () => {
   useEffect(() => {
     const fetchPaymentStatus = async () => {
       try {
+        setLoading(true);
+
+        // Step 1: Verify payment with backend
+        await paymentAPI.verifyPayment(referenceId);
+
+        // Step 2: Fetch the updated payment status
         const response = await paymentAPI.getPaymentStatus(referenceId);
         setPayment(response.data);
-        
-        // If payment is still processing, set up polling
+
+        // Step 3: If still processing, set up polling
         if (response.data.status === 'processing' || response.data.status === 'initiated') {
-          if (statusCheckCount < 10) { // Limit to 10 checks
+          if (statusCheckCount < 10) { // Max 10 polling attempts
             setTimeout(() => {
               setStatusCheckCount(prev => prev + 1);
               fetchPaymentStatus();
