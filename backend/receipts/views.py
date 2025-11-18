@@ -9,6 +9,9 @@ from .models import Receipt
 from .serializers import ReceiptSerializer
 from payments.models import Payment
 from .services import ReceiptGenerator
+import pdfkit
+import io
+import pandas as pd
 
 class ReceiptListView(generics.ListAPIView):
     queryset = Receipt.objects.all().select_related('payment', 'staff_member').order_by('-generated_at')
@@ -23,19 +26,6 @@ class ReceiptDetailView(generics.RetrieveAPIView):
 class ReceiptGenerateView(generics.CreateAPIView):
     serializer_class = ReceiptSerializer
     permission_classes = [IsAuthenticated]
-
-    def perform_create(self, serializer):
-        payment_id = self.kwargs.get('payment_id')
-        payment = get_object_or_404(Payment, id=payment_id)
-        
-        # Check if receipt already exists
-        existing_receipt = Receipt.objects.filter(payment=payment).first()
-        if existing_receipt:
-            return existing_receipt
-        
-        # Generate new receipt
-        receipt = ReceiptGenerator.generate_receipt(payment)
-        return receipt
 
     def create(self, request, *args, **kwargs):
         payment_id = self.kwargs.get('payment_id')
@@ -52,19 +42,55 @@ class ReceiptGenerateView(generics.CreateAPIView):
         serializer = self.get_serializer(receipt)
         return Response(serializer.data, status=201)
 
-class ReceiptExportView(generics.RetrieveAPIView):
+class ReceiptExportPDFView(generics.RetrieveAPIView):
     queryset = Receipt.objects.all()
     permission_classes = [IsAuthenticated]
 
     def retrieve(self, request, *args, **kwargs):
         receipt = self.get_object()
         
-        # Get the HTML content
+        # Generate HTML content
         html_content = ReceiptGenerator.generate_receipt_html(receipt)
         
-        # Return as HTML response for now (later we can add PDF generation)
-        response = HttpResponse(html_content, content_type='text/html')
-        response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.receipt_number}.html"'
+        # Convert HTML to PDF
+        pdf_file = pdfkit.from_string(html_content, False)
+        
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.receipt_number}.pdf"'
+        return response
+
+class ReceiptExportExcelView(generics.RetrieveAPIView):
+    queryset = Receipt.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        receipt = self.get_object()
+        data = receipt.receipt_data
+        
+        # Prepare data for Excel
+        df = pd.DataFrame([{
+            "Serial Number": data['serial_number'],
+            "Transaction Time": data['transaction_time'],
+            "Phone Number": data['masked_phone_number'],
+            "Amount": data['amount'],
+            "Description": data['description'],
+            "Payment Method": data['payment_method'],
+            "Status": data['status'],
+            "Initiated By": data['initiated_by'],
+            "Reference ID": data['reference_id'],
+            "Business Name": data['business_name'],
+            "Business Address": data['business_address'],
+            "Business Contact": data['business_contact'],
+        }])
+        
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, index=False, sheet_name='Receipt')
+            writer.save()
+        
+        output.seek(0)
+        response = HttpResponse(output.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="receipt_{receipt.receipt_number}.xlsx"'
         return response
 
 @api_view(['GET'])
