@@ -22,7 +22,8 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '.onrender.com',  # Add Render domain
+    '.onrender.com',       # Render domain
+    '.vercel.app',         # Allow Vercel frontend calls
 ]
 
 # Application definition
@@ -81,7 +82,7 @@ DATABASES = {
         'USER': config('SUPABASE_USER'),
         'PASSWORD': config('SUPABASE_PASSWORD'),
         'HOST': config('SUPABASE_HOST'),
-        'PORT': config('SUPABASE_PORT', default='6543'),
+        'PORT': config('SUPABASE_PORT', default='5432'),   # FIXED (Supabase uses 5432)
         'OPTIONS': {
             'sslmode': 'require',  # Supabase requires SSL
         },
@@ -131,14 +132,23 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 # CORS settings for React frontend
 CORS_ALLOWED_ORIGINS = [
     "https://portal-acces.vercel.app",  # Your Vercel domain
-    "http://localhost:5173",  # Default Vite port
-    "http://127.0.0.1:5173",  # Alternative localhost format
-    "http://localhost:3000",  # React default port
+    "http://localhost:5173",            # Default Vite port
+    "http://127.0.0.1:5173",            # Alternative localhost format
+    "http://localhost:3000",            # React default port
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://portal-acces.vercel.app",
+    "https://business-portal-i5by.onrender.com",
+    "https://*.onrender.com",
+]
+
 
 # Additional CORS settings for development
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False  # Set to True only for development if needed
+CORS_ALLOW_ALL_ORIGINS = False
+
+# FIXED: Headers must allow Authorization for token login
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -151,15 +161,13 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# REST Framework settings - NO DEFAULT PERMISSION CLASSES
+# FIXED: Rest Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
-    # DO NOT include DEFAULT_PERMISSION_CLASSES here
-    # We'll handle permissions per view
-    # This ensures that login endpoint is not protected by default
+    # NOTE: Leaving permissions empty → login endpoint stays open
 }
 
 # Custom configurations from your original settings
