@@ -165,32 +165,38 @@ const PaymentList = () => {
         </Paper>
 
         {/* Table Skeleton */}
-        <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {[...Array(7)].map((_, index) => (
-                    <TableCell key={index}>
-                      <Skeleton variant="text" width={80} />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {[...Array(10)].map((_, index) => (
-                  <TableRow key={index}>
-                    {[...Array(7)].map((_, cellIndex) => (
-                      <TableCell key={cellIndex}>
-                        <Skeleton variant="text" width={60} />
+        <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
+          <Box sx={{ 
+            overflowX: 'auto', // Allow horizontal scroll within card
+            maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)',
+            overflowY: 'auto'
+          }}>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    {[...Array(7)].map((_, index) => (
+                      <TableCell key={index}>
+                        <Skeleton variant="text" width={80} />
                       </TableCell>
                     ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                </TableHead>
+                <TableBody>
+                  {[...Array(10)].map((_, index) => (
+                    <TableRow key={index}>
+                      {[...Array(7)].map((_, cellIndex) => (
+                        <TableCell key={cellIndex}>
+                          <Skeleton variant="text" width={60} />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        </Card>
       </Container>
     );
   }
@@ -202,7 +208,7 @@ const PaymentList = () => {
         mt: 4, 
         mb: 4, 
         px: { xs: 2, sm: 3, md: 4 },
-        overflowX: 'hidden' // Prevent horizontal scroll on container
+        overflowX: 'hidden' // Prevent any horizontal scroll on main container
       }}
     >
       {/* Header */}
@@ -220,7 +226,7 @@ const PaymentList = () => {
           sx={{ 
             color: '#333',
             fontWeight: 700,
-            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' }, // Reduced font size
+            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' },
             flexGrow: 1
           }}
         >
@@ -459,252 +465,268 @@ const PaymentList = () => {
         </Box>
       </Box>
 
-      {/* Payments Table - Now with proper horizontal scrolling */}
-      <Paper sx={{ 
+      {/* Table Card with Scrollable Content */}
+      <Card sx={{ 
         borderRadius: 3, 
         overflow: 'hidden', 
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-        overflowX: 'auto' // Allow horizontal scroll only for table
+        border: '1px solid rgba(0,0,0,0.1)'
       }}>
-        <TableContainer 
-          sx={{ 
-            maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)', // Reduced height on mobile
-            overflowY: 'auto',
-            overflowX: 'auto' // Horizontal scroll for table
-          }}
-        >
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: 'rgba(74, 124, 89, 0.05)' }}>
-                <TableCell 
-                  sx={{ 
-                    fontWeight: 600, 
-                    color: '#4a7c59',
-                    minWidth: isMobile ? 100 : isTablet ? 120 : 140, // Reduced widths
-                    maxWidth: isMobile ? 120 : isTablet ? 150 : 180,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    fontSize: isMobile ? '0.75rem' : '0.875rem' // Smaller font on mobile
-                  }}
-                >
-                  Ref ID
-                </TableCell>
-                <TableCell 
-                  sx={{ 
-                    fontWeight: 600, 
-                    color: '#4a7c59',
-                    minWidth: isMobile ? 80 : isTablet ? 100 : 120,
-                    whiteSpace: 'nowrap',
-                    fontSize: isMobile ? '0.75rem' : '0.875rem'
-                  }}
-                >
-                  Phone
-                </TableCell>
-                <TableCell 
-                  align="right"
-                  sx={{ 
-                    fontWeight: 600, 
-                    color: '#4a7c59',
-                    minWidth: isMobile ? 70 : isTablet ? 80 : 100,
-                    whiteSpace: 'nowrap',
-                    fontSize: isMobile ? '0.75rem' : '0.875rem'
-                  }}
-                >
-                  Amount
-                </TableCell>
-                <TableCell 
-                  sx={{ 
-                    fontWeight: 600, 
-                    color: '#4a7c59',
-                    minWidth: isMobile ? 70 : isTablet ? 80 : 100,
-                    whiteSpace: 'nowrap',
-                    fontSize: isMobile ? '0.75rem' : '0.875rem'
-                  }}
-                >
-                  Status
-                </TableCell>
-                <TableCell 
-                  sx={{ 
-                    fontWeight: 600, 
-                    color: '#4a7c59',
-                    minWidth: isMobile ? 70 : isTablet ? 80 : 100,
-                    whiteSpace: 'nowrap',
-                    fontSize: isMobile ? '0.75rem' : '0.875rem'
-                  }}
-                >
-                  Method
-                </TableCell>
-                <TableCell 
-                  sx={{ 
-                    fontWeight: 600, 
-                    color: '#4a7c59',
-                    minWidth: isMobile ? 90 : isTablet ? 100 : 120,
-                    whiteSpace: 'nowrap',
-                    fontSize: isMobile ? '0.75rem' : '0.875rem'
-                  }}
-                >
-                  Date
-                </TableCell>
-                <TableCell 
-                  sx={{ 
-                    fontWeight: 600, 
-                    color: '#4a7c59',
-                    minWidth: isMobile ? 60 : isTablet ? 70 : 80,
-                    whiteSpace: 'nowrap',
-                    fontSize: isMobile ? '0.75rem' : '0.875rem'
-                  }}
-                >
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {paginatedPayments.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <Typography variant="h6" color="text.secondary" gutterBottom>
-                        No payments found
-                      </Typography>
-                      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-                        {filteredPayments.length === 0 && searchTerm ? 
-                          'No payments match your search criteria' : 
-                          'Start by initiating your first payment'
-                        }
-                      </Typography>
-                      <Button 
-                        variant="contained" 
-                        onClick={() => navigate('/payment')}
-                        sx={{ 
-                          backgroundColor: '#4a7c59', 
-                          '&:hover': { 
-                            backgroundColor: '#3d664b' 
-                          }
-                        }}
-                      >
-                        Initiate Payment
-                      </Button>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedPayments.map((payment) => (
-                  <TableRow 
-                    key={payment.id}
+        {/* Scrollable Table Container */}
+        <Box sx={{ 
+          overflowX: 'auto', // Horizontal scroll for table
+          maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)', // Vertical scroll for table
+          overflowY: 'auto',
+          '&::-webkit-scrollbar': {
+            height: 8,
+            width: 8
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+            borderRadius: 4
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#c1c1c1',
+            borderRadius: 4,
+            '&:hover': {
+              background: '#a8a8a8'
+            }
+          }
+        }}>
+          <TableContainer>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: 'rgba(74, 124, 89, 0.05)' }}>
+                  <TableCell 
                     sx={{ 
-                      '&:hover': { 
-                        backgroundColor: 'rgba(74, 124, 89, 0.02)',
-                        transition: 'background-color 0.2s ease-in-out'
-                      },
-                      '&:last-child td, &:last-child th': { border: 0 }
+                      fontWeight: 600, 
+                      color: '#4a7c59',
+                      minWidth: isMobile ? 120 : isTablet ? 140 : 160, // Reasonable widths
+                      maxWidth: isMobile ? 150 : isTablet ? 180 : 200,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
                     }}
                   >
-                    <TableCell 
-                      sx={{ 
-                        fontFamily: 'monospace',
-                        fontSize: isMobile ? '0.7rem' : '0.8rem', // Smaller font
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        maxWidth: isMobile ? 100 : isTablet ? 120 : 140
-                      }}
-                    >
-                      {payment.reference_id}
-                    </TableCell>
-                    <TableCell 
-                      sx={{ 
-                        whiteSpace: 'nowrap',
-                        fontSize: isMobile ? '0.7rem' : '0.8rem'
-                      }}
-                    >
-                      {payment.phone_number}
-                    </TableCell>
-                    <TableCell 
-                      align="right"
-                      sx={{ 
-                        fontWeight: 600, 
-                        color: '#4a7c59',
-                        whiteSpace: 'nowrap',
-                        fontSize: isMobile ? '0.7rem' : '0.8rem'
-                      }}
-                    >
-                      KSH {payment.amount.toLocaleString()}
-                    </TableCell>
-                    <TableCell 
-                      sx={{ 
-                        whiteSpace: 'nowrap',
-                        fontSize: isMobile ? '0.7rem' : '0.8rem'
-                      }}
-                    >
-                      <Chip 
-                        label={getStatusColor(payment.status).label} 
-                        color={getStatusColor(payment.status).color} 
-                        size="small"
-                        sx={{ 
-                          fontWeight: 600,
-                          fontSize: isMobile ? '0.65rem' : '0.75rem' // Smaller chip text
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell 
-                      sx={{ 
-                        whiteSpace: 'nowrap',
-                        fontSize: isMobile ? '0.7rem' : '0.8rem'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <span style={{ fontSize: isMobile ? '0.8rem' : '1rem' }}>
-                          {getPaymentMethodIcon(payment.payment_method)}
-                        </span>
-                        <Typography variant="body2" textTransform="capitalize" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>
-                          {payment.payment_method}
+                    Reference ID
+                  </TableCell>
+                  <TableCell 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: '#4a7c59',
+                      minWidth: isMobile ? 100 : isTablet ? 120 : 140,
+                      whiteSpace: 'nowrap',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                    }}
+                  >
+                    Phone Number
+                  </TableCell>
+                  <TableCell 
+                    align="right"
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: '#4a7c59',
+                      minWidth: isMobile ? 90 : isTablet ? 110 : 130,
+                      whiteSpace: 'nowrap',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                    }}
+                  >
+                    Amount
+                  </TableCell>
+                  <TableCell 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: '#4a7c59',
+                      minWidth: isMobile ? 80 : isTablet ? 100 : 120,
+                      whiteSpace: 'nowrap',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                    }}
+                  >
+                    Status
+                  </TableCell>
+                  <TableCell 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: '#4a7c59',
+                      minWidth: isMobile ? 80 : isTablet ? 100 : 120,
+                      whiteSpace: 'nowrap',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                    }}
+                  >
+                    Method
+                  </TableCell>
+                  <TableCell 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: '#4a7c59',
+                      minWidth: isMobile ? 110 : isTablet ? 130 : 150,
+                      whiteSpace: 'nowrap',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                    }}
+                  >
+                    Date
+                  </TableCell>
+                  <TableCell 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: '#4a7c59',
+                      minWidth: isMobile ? 70 : isTablet ? 90 : 110,
+                      whiteSpace: 'nowrap',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                    }}
+                  >
+                    Actions
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paginatedPayments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <Typography variant="h6" color="text.secondary" gutterBottom>
+                          No payments found
                         </Typography>
+                        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                          {filteredPayments.length === 0 && searchTerm ? 
+                            'No payments match your search criteria' : 
+                            'Start by initiating your first payment'
+                          }
+                        </Typography>
+                        <Button 
+                          variant="contained" 
+                          onClick={() => navigate('/payment')}
+                          sx={{ 
+                            backgroundColor: '#4a7c59', 
+                            '&:hover': { 
+                              backgroundColor: '#3d664b' 
+                            }
+                          }}
+                        >
+                          Initiate Payment
+                        </Button>
                       </Box>
-                    </TableCell>
-                    <TableCell 
-                      sx={{ 
-                        whiteSpace: 'nowrap',
-                        fontSize: isMobile ? '0.7rem' : '0.8rem'
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>
-                          {new Date(payment.created_at).toLocaleDateString()}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: isMobile ? '0.6rem' : '0.7rem' }}>
-                          {new Date(payment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell 
-                      sx={{ 
-                        whiteSpace: 'nowrap',
-                        fontSize: isMobile ? '0.7rem' : '0.8rem'
-                      }}
-                    >
-                      <IconButton 
-                        onClick={() => handleViewDetails(payment)}
-                        size="small"
-                        sx={{ 
-                          color: '#4a7c59',
-                          '&:hover': {
-                            backgroundColor: 'rgba(74, 124, 89, 0.1)'
-                          },
-                          p: 0.5 // Smaller padding
-                        }}
-                      >
-                        <VisibilityIcon sx={{ fontSize: isMobile ? '1rem' : '1.2rem' }} />
-                      </IconButton>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  paginatedPayments.map((payment) => (
+                    <TableRow 
+                      key={payment.id}
+                      sx={{ 
+                        '&:hover': { 
+                          backgroundColor: 'rgba(74, 124, 89, 0.02)',
+                          transition: 'background-color 0.2s ease-in-out'
+                        },
+                        '&:last-child td, &:last-child th': { border: 0 }
+                      }}
+                    >
+                      <TableCell 
+                        sx={{ 
+                          fontFamily: 'monospace',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          maxWidth: isMobile ? 120 : isTablet ? 150 : 180
+                        }}
+                      >
+                        {payment.reference_id}
+                      </TableCell>
+                      <TableCell 
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                        }}
+                      >
+                        {payment.phone_number}
+                      </TableCell>
+                      <TableCell 
+                        align="right"
+                        sx={{ 
+                          fontWeight: 600, 
+                          color: '#4a7c59',
+                          whiteSpace: 'nowrap',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                        }}
+                      >
+                        KSH {payment.amount.toLocaleString()}
+                      </TableCell>
+                      <TableCell 
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                        }}
+                      >
+                        <Chip 
+                          label={getStatusColor(payment.status).label} 
+                          color={getStatusColor(payment.status).color} 
+                          size="small"
+                          sx={{ 
+                            fontWeight: 600,
+                            fontSize: isMobile ? '0.65rem' : '0.75rem'
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell 
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <span style={{ fontSize: isMobile ? '0.8rem' : '1rem' }}>
+                            {getPaymentMethodIcon(payment.payment_method)}
+                          </span>
+                          <Typography variant="body2" textTransform="capitalize" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>
+                            {payment.payment_method}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell 
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                        }}
+                      >
+                        <Box>
+                          <Typography variant="body2" sx={{ fontSize: isMobile ? '0.7rem' : '0.8rem' }}>
+                            {new Date(payment.created_at).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontSize: isMobile ? '0.6rem' : '0.7rem' }}>
+                            {new Date(payment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell 
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          fontSize: isMobile ? '0.7rem' : '0.8rem'
+                        }}
+                      >
+                        <IconButton 
+                          onClick={() => handleViewDetails(payment)}
+                          size="small"
+                          sx={{ 
+                            color: '#4a7c59',
+                            '&:hover': {
+                              backgroundColor: 'rgba(74, 124, 89, 0.1)'
+                            },
+                            p: 0.5
+                          }}
+                        >
+                          <VisibilityIcon sx={{ fontSize: isMobile ? '1rem' : '1.2rem' }} />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
 
-        {/* Pagination */}
+        {/* Pagination - Outside the scrollable area */}
         {filteredPayments.length > rowsPerPage && (
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
             <Pagination
@@ -717,7 +739,7 @@ const PaymentList = () => {
             />
           </Box>
         )}
-      </Paper>
+      </Card>
 
       {/* Payment Details Dialog */}
       <Dialog 
