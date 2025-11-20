@@ -1,5 +1,5 @@
 // src/components/PaymentForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Typography, 
@@ -48,28 +48,62 @@ const PaymentForm = () => {
   const [success, setSuccess] = useState('');
   const [showMpesaDialog, setShowMpesaDialog] = useState(false);
   const [mpesaResult, setMpesaResult] = useState(null);
+  const [pollingId, setPollingId] = useState(null); // ← NEW: for polling cleanup
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // 🔁 Poll payment status (only for M-Pesa)
+  const pollPaymentStatus = async (referenceId) => {
+    try {
+      const response = await paymentAPI.getPaymentStatus(referenceId);
+      const { status } = response.data;
+
+      if (status === 'success') {
+        setSuccess('✅ Payment completed successfully!');
+        setError('');
+        setShowMpesaDialog(false);
+        if (pollingId) clearInterval(pollingId);
+        // Optional: redirect after success
+        setTimeout(() => navigate('/payments'), 2000);
+      } else if (['failed', 'cancelled', 'timeout'].includes(status)) {
+        let message = 'Payment failed. Please try again.';
+        if (status === 'cancelled') message = 'Payment was cancelled by user.';
+        if (status === 'timeout') message = 'Payment timed out. Please try again.';
+        setError(message);
+        setSuccess('');
+        setShowMpesaDialog(false);
+        if (pollingId) clearInterval(pollingId);
+      }
+      // If status is still 'processing', continue polling
+    } catch (err) {
+      console.error('Polling error:', err);
+      // Don't stop polling on network error — try again
+    }
+  };
+
+  // 🧹 Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingId) {
+        clearInterval(pollingId);
+      }
+    };
+  }, [pollingId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     
     if (name === 'phone_number') {
-      // Only allow numeric input for phone number
       const numericValue = value.replace(/[^0-9]/g, '');
-      // Limit to 9 digits after +254 prefix
       setFormData({
         ...formData,
         [name]: numericValue.slice(0, 9)
       });
     } else if (name === 'amount') {
-      // Only allow numeric input for amount (including decimal point)
       const numericValue = value.replace(/[^0-9.]/g, '');
-      // Prevent multiple decimal points
       const parts = numericValue.split('.');
       if (parts.length > 2) {
-        // Keep only the first decimal point
         const correctedValue = parts[0] + '.' + parts.slice(1).join('');
         setFormData({
           ...formData,
@@ -116,25 +150,27 @@ const PaymentForm = () => {
     try {
       const response = await paymentAPI.initiatePayment({
         ...formData,
-        phone_number: `254${formData.phone_number}`
+        phone_number: `254${formData.phone_number}` // ✅ CORRECT: no '+'
       });
       
       if (formData.payment_method === 'mpesa') {
-        // For Mpesa, show a dialog to inform the user
+        const referenceId = response.data.reference_id;
         setMpesaResult(response.data);
         setShowMpesaDialog(true);
-        
-        // Update success message for Mpesa
         setSuccess('Mpesa payment initiated! Check your phone for the payment prompt.');
+
+        // 🔁 START POLLING
+        const intervalId = setInterval(() => {
+          pollPaymentStatus(referenceId);
+        }, 4000); // Every 4 seconds
+        setPollingId(intervalId);
+
       } else if (response.data.authorization_url && formData.payment_method === 'paystack') {
-        // For Paystack, redirect to the authorization URL
         window.location.href = response.data.authorization_url;
-        return; // Don't navigate to payments page
+        return;
       } else {
         setSuccess('Payment initiated successfully!');
-        setTimeout(() => {
-          navigate('/payments');
-        }, 2000);
+        setTimeout(() => navigate('/payments'), 2000);
       }
     } catch (error) {
       setError(error.response?.data?.error || 'Failed to initiate payment. Please try again.');
@@ -145,6 +181,10 @@ const PaymentForm = () => {
   };
 
   const handleMpesaDialogClose = () => {
+    if (pollingId) {
+      clearInterval(pollingId);
+      setPollingId(null);
+    }
     setShowMpesaDialog(false);
     setFormData({
       phone_number: '',
@@ -152,14 +192,15 @@ const PaymentForm = () => {
       description: '',
       payment_method: ''
     });
-    // Don't navigate immediately, let user see the success message
+    setError('');
+    setSuccess('');
   };
 
   const handleMethodChange = (method) => {
     setFormData({
       ...formData,
       payment_method: method,
-      phone_number: '' // Clear phone number when changing method
+      phone_number: ''
     });
     setError('');
     setSuccess('');
@@ -185,14 +226,14 @@ const PaymentForm = () => {
         px: { xs: 2, sm: 3, md: 4 }
       }}
     >
-      {/* Fixed Header Section - No Horizontal Scroll */}
+      {/* Fixed Header Section */}
       <Box sx={{ 
         display: 'flex', 
-        flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
+        flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between', 
-        alignItems: 'flex-start', // Align to top instead of center
+        alignItems: 'flex-start',
         mb: 4,
-        gap: 2 // Add gap between elements
+        gap: 2
       }}>
         <Typography 
           variant="h3" 
@@ -200,8 +241,8 @@ const PaymentForm = () => {
           sx={{ 
             color: '#333',
             fontWeight: 700,
-            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' }, // Smaller font sizes
-            mb: { xs: 1, sm: 0 } // Add margin bottom on mobile to separate from button
+            fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' },
+            mb: { xs: 1, sm: 0 }
           }}
         >
           Initiate Payment
@@ -214,9 +255,9 @@ const PaymentForm = () => {
             borderColor: '#4a7c59',
             textTransform: 'none',
             fontWeight: 600,
-            px: 2, // Reduced padding
+            px: 2,
             py: 1,
-            minWidth: 'auto', // Allow button to shrink
+            minWidth: 'auto',
             '&:hover': {
               backgroundColor: 'rgba(74, 124, 89, 0.1)',
               borderColor: '#3d664b'
@@ -323,7 +364,7 @@ const PaymentForm = () => {
             </Grid>
           </Box>
 
-          {/* Dynamic Form Fields based on selected method */}
+          {/* Dynamic Form Fields */}
           {formData.payment_method && (
             <Box sx={{ 
               p: 3, 
@@ -342,7 +383,7 @@ const PaymentForm = () => {
                     fullWidth
                     label="Amount (KES)"
                     name="amount"
-                    type="text" // Changed from number to text to allow custom validation
+                    type="text"
                     value={formData.amount}
                     onChange={handleChange}
                     required
@@ -380,16 +421,16 @@ const PaymentForm = () => {
                     fullWidth
                     label="Phone Number"
                     name="phone_number"
-                    type="text" // Changed from number to text to allow custom validation
+                    type="text"
                     value={formData.phone_number}
                     onChange={handleChange}
                     required
                     placeholder="e.g., 712345678"
-                    helperText="Enter 9-digit phone number (e.g., 712345678). Will be prefixed with +254"
+                    helperText="Enter 9-digit phone number (e.g., 712345678). Will be prefixed with 254"
                     InputProps={{
                       startAdornment: (
                         <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
-                          <Typography variant="body1">+254</Typography>
+                          <Typography variant="body1">254</Typography>
                         </Box>
                       ),
                       sx: {
@@ -453,10 +494,10 @@ const PaymentForm = () => {
           {/* Submit Button */}
           <Box sx={{ 
             display: 'flex', 
-            flexDirection: { xs: 'column', sm: 'row' }, // Stack on mobile
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between', 
             alignItems: 'center',
-            gap: 2, // Add gap between buttons on mobile
+            gap: 2,
             mt: 3
           }}>
             <Button 
@@ -476,9 +517,9 @@ const PaymentForm = () => {
                 borderColor: '#f44336',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 2, // Reduced padding
+                px: 2,
                 py: 1,
-                width: { xs: '100%', sm: 'auto' }, // Full width on mobile
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   backgroundColor: 'rgba(244, 67, 54, 0.1)',
                   borderColor: '#d32f2f'
@@ -495,10 +536,10 @@ const PaymentForm = () => {
                 backgroundColor: '#4a7c59',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 3, // Reduced padding
+                px: 3,
                 py: 1.5,
                 fontSize: '1rem',
-                width: { xs: '100%', sm: 'auto' }, // Full width on mobile
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   backgroundColor: '#3d664b'
                 },
@@ -561,13 +602,13 @@ const PaymentForm = () => {
                 Check your phone!
               </Typography>
               <Typography variant="body1" align="center" sx={{ mb: 1 }}>
-                We've sent an STK Push to your phone number:
+                We've sent an STK Push to:
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#4a7c59', mb: 2 }}>
                 254{formData.phone_number}
               </Typography>
               <Typography variant="body1" align="center">
-                Enter your Mpesa PIN to complete the payment.
+                Enter your M-Pesa PIN to complete the payment.
               </Typography>
               <Box sx={{ mt: 2, textAlign: 'center', width: '100%' }}>
                 <Typography variant="body2" color="text.secondary">
@@ -576,6 +617,9 @@ const PaymentForm = () => {
                 <Typography variant="body2" color="text.secondary">
                   Amount: KSH {formData.amount}
                 </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <strong>Waiting for confirmation...</strong>
+                </Typography>
               </Box>
             </Box>
           </DialogContentText>
@@ -583,13 +627,14 @@ const PaymentForm = () => {
         <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
           <Button 
             onClick={handleMpesaDialogClose} 
-            variant="contained"
+            variant="outlined"
             sx={{ 
-              backgroundColor: '#4a7c59',
-              '&:hover': { backgroundColor: '#3d664b' }
+              color: '#4a7c59',
+              borderColor: '#4a7c59',
+              '&:hover': { borderColor: '#3d664b' }
             }}
           >
-            Close
+            Cancel
           </Button>
         </DialogActions>
       </Dialog>
