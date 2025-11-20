@@ -24,6 +24,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '.onrender.com',       # Render domain
     '.vercel.app',         # Allow Vercel frontend calls
+    '10.20.229.21',
 ]
 
 # Application definition

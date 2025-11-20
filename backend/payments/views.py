@@ -148,7 +148,7 @@ def paystack_webhook(request):
         import hashlib
         import hmac
         
-        secret = "your_paystack_webhook_secret_here"  # Replace with your actual webhook secret
+        secret = settings.PAYSTACK_WEBHOOK_SECRET
         signature = request.META.get('HTTP_X_PAYSTACK_SIGNATURE')
         
         if signature:

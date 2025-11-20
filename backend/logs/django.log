@@ -480,3 +480,52 @@ INFO 2025-11-14 20:15:56,815 basehttp 6080 10848 "GET /api/payments/list/ HTTP/1
 INFO 2025-11-14 20:16:01,120 basehttp 6080 19384 "GET /api/payments/list/ HTTP/1.1" 200 6239
 INFO 2025-11-14 20:17:45,388 autoreload 6080 20164 C:\Users\DEUK MOSE\Documents\business\backend\business_portal\settings.py changed, reloading.
 INFO 2025-11-14 20:17:46,995 autoreload 20168 23216 Watching for file changes with StatReloader
+INFO 2025-11-19 08:07:28,061 autoreload 18340 20272 Watching for file changes with StatReloader
+ERROR 2025-11-19 08:09:04,877 exception 18340 7156 Invalid HTTP_HOST header: '10.20.229.21:8000'. You may need to add '10.20.229.21' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\utils\deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\http\request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '10.20.229.21:8000'. You may need to add '10.20.229.21' to ALLOWED_HOSTS.
+WARNING 2025-11-19 08:09:05,279 log 18340 7156 Bad Request: /
+WARNING 2025-11-19 08:09:05,280 basehttp 18340 7156 "GET / HTTP/1.1" 400 72020
+ERROR 2025-11-19 08:09:05,578 exception 18340 7208 Invalid HTTP_HOST header: '10.20.229.21:8000'. You may need to add '10.20.229.21' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\utils\deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\middleware\common.py", line 48, in process_request
+    host = request.get_host()
+  File "C:\Users\DEUK MOSE\Documents\business\backend\venv\Lib\site-packages\django\http\request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '10.20.229.21:8000'. You may need to add '10.20.229.21' to ALLOWED_HOSTS.
+WARNING 2025-11-19 08:09:05,623 log 18340 7208 Bad Request: /favicon.ico
+WARNING 2025-11-19 08:09:05,624 basehttp 18340 7208 "GET /favicon.ico HTTP/1.1" 400 72076
+INFO 2025-11-19 08:10:44,333 autoreload 18340 20272 C:\Users\DEUK MOSE\Documents\business\backend\business_portal\settings.py changed, reloading.
+INFO 2025-11-19 08:10:46,235 autoreload 16460 9004 Watching for file changes with StatReloader
+WARNING 2025-11-19 08:10:59,223 log 16460 7580 Not Found: /
+WARNING 2025-11-19 08:10:59,224 basehttp 16460 7580 "GET / HTTP/1.1" 404 2410
+WARNING 2025-11-19 08:10:59,285 log 16460 7580 Not Found: /favicon.ico
+WARNING 2025-11-19 08:10:59,286 basehttp 16460 7580 "GET /favicon.ico HTTP/1.1" 404 2461
+INFO 2025-11-19 08:11:39,997 basehttp 16460 7580 "GET /admin HTTP/1.1" 301 0
+INFO 2025-11-19 08:11:40,038 basehttp 16460 21280 "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-11-19 08:11:40,600 basehttp 16460 21280 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4181
+INFO 2025-11-19 08:11:41,045 basehttp 16460 21280 "GET /static/admin/css/base.css HTTP/1.1" 200 21207
+INFO 2025-11-19 08:11:41,057 basehttp 16460 11744 "GET /static/admin/css/login.css HTTP/1.1" 200 958
+INFO 2025-11-19 08:11:41,064 basehttp 16460 16636 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2694
+INFO 2025-11-19 08:11:41,074 basehttp 16460 17116 "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2929
+INFO 2025-11-19 08:11:41,076 basehttp 16460 15708 "GET /static/admin/css/responsive.css HTTP/1.1" 200 18533
+INFO 2025-11-19 08:11:41,092 basehttp 16460 20832 "GET /static/admin/js/theme.js HTTP/1.1" 200 1943
+INFO 2025-11-19 08:11:41,097 basehttp 16460 21280 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-11-19 08:15:15,554 basehttp 16460 21280 - Broken pipe from ('10.20.229.131', 52560)
+INFO 2025-11-19 08:15:15,554 basehttp 16460 15708 - Broken pipe from ('10.20.229.131', 43238)
+INFO 2025-11-19 08:15:15,555 basehttp 16460 11744 - Broken pipe from ('10.20.229.131', 43232)
+INFO 2025-11-19 08:15:15,555 basehttp 16460 20832 - Broken pipe from ('10.20.229.131', 43248)
+INFO 2025-11-19 08:15:15,555 basehttp 16460 16636 - Broken pipe from ('10.20.229.131', 43220)
+INFO 2025-11-19 08:15:15,555 basehttp 16460 17116 - Broken pipe from ('10.20.229.131', 43214)
