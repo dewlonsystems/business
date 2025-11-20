@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
+from django.conf import settings
 from .models import Payment
 from .serializers import PaymentSerializer
 from .services import PaymentProcessor, PaystackService
