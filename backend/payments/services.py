@@ -16,12 +16,8 @@ class MpesaService:
         self.business_short_code = settings.MPESA_BUSINESS_SHORT_CODE
         self.passkey = settings.MPESA_PASSKEY
         self.callback_url = settings.MPESA_CALLBACK_URL
-        self.environment = settings.MPESA_ENVIRONMENT
-        
-        if self.environment == 'sandbox':
-            self.base_url = 'https://sandbox.safaricom.co.ke'
-        else:
-            self.base_url = 'https://api.safaricom.co.ke'
+        # Always use live environment
+        self.base_url = 'https://api.safaricom.co.ke'
     
     def get_access_token(self):
         """Get OAuth access token for Mpesa API"""
@@ -74,7 +70,7 @@ class MpesaService:
         """Register callback URLs with Mpesa"""
         access_token = self.get_access_token()
         
-        url = f"{self.base_url}/mpesa/stkpushquery/v1/query"
+        url = f"{self.base_url}/mpesa/c2b/v1/registerurl"
         
         headers = {
             "Authorization": f"Bearer {access_token}",

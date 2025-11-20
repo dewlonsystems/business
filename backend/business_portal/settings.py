@@ -184,7 +184,6 @@ MPESA_CONSUMER_SECRET = config('MPESA_CONSUMER_SECRET', default='')
 MPESA_BUSINESS_SHORT_CODE = config('MPESA_BUSINESS_SHORT_CODE', default='')
 MPESA_PASSKEY = config('MPESA_PASSKEY', default='')
 MPESA_CALLBACK_URL = config('MPESA_CALLBACK_URL', default='https://business-portal-i5by.onrender.com/api/payments/mpesa/callback/')
-MPESA_ENVIRONMENT = config('MPESA_ENVIRONMENT', default='sandbox')  # sandbox or production
 
 
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
