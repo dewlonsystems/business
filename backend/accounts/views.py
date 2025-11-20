@@ -56,3 +56,4 @@ def user_profile(request):
     # This will require authentication
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
+
