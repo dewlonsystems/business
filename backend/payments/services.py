@@ -11,12 +11,12 @@ from datetime import datetime
 
 class MpesaService:
     def __init__(self):
-        self.consumer_key = config('MPESA_CONSUMER_KEY', default='')
-        self.consumer_secret = config('MPESA_CONSUMER_SECRET', default='')
-        self.business_short_code = config('MPESA_BUSINESS_SHORT_CODE', default='')
-        self.passkey = config('MPESA_PASSKEY', default='')
-        self.callback_url = config('MPESA_CALLBACK_URL', default='')
-        self.environment = config('MPESA_ENVIRONMENT', default='sandbox')  # sandbox or production
+        self.consumer_key = settings.MPESA_CONSUMER_KEY
+        self.consumer_secret = settings.MPESA_CONSUMER_SECRET
+        self.business_short_code = settings.MPESA_BUSINESS_SHORT_CODE
+        self.passkey = settings.MPESA_PASSKEY
+        self.callback_url = settings.MPESA_CALLBACK_URL
+        self.environment = settings.MPESA_ENVIRONMENT
         
         if self.environment == 'sandbox':
             self.base_url = 'https://sandbox.safaricom.co.ke'
