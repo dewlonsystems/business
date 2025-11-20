@@ -70,3 +70,4 @@ supabase/
 # OS
 .DS_Store
 Thumbs.db
+app/mobile/
