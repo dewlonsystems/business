@@ -94,54 +94,56 @@ def verify_payment(request, reference_id):
     return Response({'error': 'Verification only available for Paystack'}, 
                    status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])  # Allow external callbacks
+# ✅ FIXED: Properly handle M-Pesa callback with CSRF exemption and raw JSON parsing
+@csrf_exempt
 def mpesa_callback(request):
-    """Handle Mpesa callback"""
+    """
+    Handle M-Pesa STK Push callback from Safaricom.
+    Must return plain-text 'OK' with HTTP 200.
+    """
+    if request.method != 'POST':
+        return HttpResponse("Method not allowed", status=405)
+
     try:
-        # Parse the callback data
-        callback_data = request.data
-        
-        # Extract checkout request ID from callback
-        checkout_request_id = callback_data.get('Body', {}).get('stkCallback', {}).get('CheckoutRequestID')
-        
+        callback_data = json.loads(request.body)
+
+        stk_callback = callback_data.get('Body', {}).get('stkCallback', {})
+        checkout_request_id = stk_callback.get('CheckoutRequestID')
+        result_code = stk_callback.get('ResultCode')
+
         if checkout_request_id:
-            # Find the payment by Mpesa transaction ID
             payment = Payment.objects.filter(mpesa_transaction_id=checkout_request_id).first()
-            
             if payment:
-                # Update payment status based on callback
-                stk_callback = callback_data.get('Body', {}).get('stkCallback', {})
-                result_code = stk_callback.get('ResultCode')
-                
                 if result_code == 0:
                     payment.status = 'success'
-                elif result_code == 1032:  # User cancelled
+                elif result_code == 1032:
                     payment.status = 'cancelled'
-                elif result_code == 1037:  # Timeout
+                elif result_code == 1037:
                     payment.status = 'timeout'
                 else:
                     payment.status = 'failed'
-                
+
                 payment.response_data = callback_data
                 payment.save()
-                
-                # Generate receipt if payment is successful
+
                 if payment.status == 'success':
                     from receipts.models import Receipt
-                    receipt_exists = Receipt.objects.filter(payment=payment).exists()
-                    if not receipt_exists:
+                    if not Receipt.objects.filter(payment=payment).exists():
                         from receipts.services import ReceiptGenerator
                         ReceiptGenerator.generate_receipt(payment)
-        
-        return Response({'Result': 'Success'}, status=status.HTTP_200_OK)
-    
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-@csrf_exempt  # Add this decorator to exempt CSRF for external webhooks
-@api_view(['POST'])  # Specify that this view only handles POST requests
-@permission_classes([AllowAny])  # Allow requests from external sources
+        return HttpResponse("OK", status=200)
+
+    except json.JSONDecodeError:
+        print("M-Pesa Callback Error: Invalid JSON")
+        return HttpResponse("Invalid JSON", status=400)
+    except Exception as e:
+        print(f"M-Pesa Callback Error: {str(e)}")
+        return HttpResponse("Internal Error", status=500)
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def paystack_webhook(request):
     """Handle Paystack webhook"""
     if request.method == 'POST':
