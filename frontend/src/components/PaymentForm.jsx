@@ -116,7 +116,7 @@ const PaymentForm = () => {
     try {
       const response = await paymentAPI.initiatePayment({
         ...formData,
-        phone_number: `+254${formData.phone_number}`
+        phone_number: `254${formData.phone_number}`
       });
       
       if (formData.payment_method === 'mpesa') {
@@ -564,7 +564,7 @@ const PaymentForm = () => {
                 We've sent an STK Push to your phone number:
               </Typography>
               <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#4a7c59', mb: 2 }}>
-                +254{formData.phone_number}
+                254{formData.phone_number}
               </Typography>
               <Typography variant="body1" align="center">
                 Enter your Mpesa PIN to complete the payment.
