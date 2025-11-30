@@ -31,7 +31,8 @@ class LoginView(APIView):
         
         user = authenticate(username=username, password=password)
         if user:
-            token, created = Token.objects.get_or_create(user=user)
+            Token.objects.filter(user=user).delete()
+            token = Token.objects.create(user=user)
             return Response({
                 'token': token.key,
                 'user_id': user.id,
