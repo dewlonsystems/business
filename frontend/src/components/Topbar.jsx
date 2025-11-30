@@ -1,5 +1,5 @@
 // src/components/Topbar.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AppBar, 
   Toolbar, 
@@ -9,30 +9,39 @@ import {
   Menu, 
   MenuItem, 
   Box,
-  useMediaQuery,
   useTheme,
-  Badge
+  CircularProgress
 } from '@mui/material';
 import { 
   Menu as MenuIcon, 
-  Notifications as NotificationsIcon,
   AccountCircle as AccountCircleIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api'; // Your authenticated API
 
 const Topbar = ({ isMobile }) => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = useState(null);
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
+  const [totalCollected, setTotalCollected] = useState(null);
+  const [loadingTotal, setLoadingTotal] = useState(true);
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // Fetch total collected on mount
+  useEffect(() => {
+    const fetchTotal = async () => {
+      try {
+        const response = await api.get('/payments/total/');
+        setTotalCollected(response.data.total_collected);
+      } catch (error) {
+        console.error('Failed to fetch total:', error);
+        setTotalCollected(0);
+      } finally {
+        setLoadingTotal(false);
+      }
+    };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+    fetchTotal();
+  }, []);
 
   const handleUserMenuOpen = (event) => {
     setUserMenuAnchorEl(event.currentTarget);
@@ -49,10 +58,6 @@ const Topbar = ({ isMobile }) => {
     handleUserMenuClose();
   };
 
-  const menuId = 'primary-search-account-menu';
-  const userMenuId = 'user-account-menu';
-
-  // Get user info from localStorage
   const user = JSON.parse(localStorage.getItem('user')) || { username: 'User', user_type: 'User' };
 
   return (
@@ -92,21 +97,32 @@ const Topbar = ({ isMobile }) => {
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton 
-            size="large" 
-            aria-label="show 17 new notifications"
-            color="inherit"
-            sx={{ color: '#4a7c59' }}
-          >
-            <Badge badgeContent={17} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
+          {/* ✅ Total Collected Display */}
+          <Box sx={{ mr: 2, textAlign: 'right' }}>
+            <Typography 
+              variant="body2" 
+              sx={{ color: '#666', fontSize: '0.75rem' }}
+            >
+              Total Collected
+            </Typography>
+            {loadingTotal ? (
+              <CircularProgress size={16} sx={{ color: '#4a7c59' }} />
+            ) : (
+              <Typography 
+                variant="subtitle1" 
+                sx={{ fontWeight: 'bold', color: '#4a7c59' }}
+              >
+                KES {totalCollected?.toLocaleString() || '0'}
+              </Typography>
+            )}
+          </Box>
+
+          {/* User Avatar */}
           <IconButton
             size="large"
             edge="end"
             aria-label="account of current user"
-            aria-controls={userMenuId}
+            aria-controls="user-account-menu"
             aria-haspopup="true"
             onClick={handleUserMenuOpen}
             color="inherit"
@@ -118,18 +134,14 @@ const Topbar = ({ isMobile }) => {
           </IconButton>
         </Box>
       </Toolbar>
+
+      {/* User Menu */}
       <Menu
         anchorEl={userMenuAnchorEl}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        id={userMenuId}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        id="user-account-menu"
         keepMounted
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         open={Boolean(userMenuAnchorEl)}
         onClose={handleUserMenuClose}
       >
