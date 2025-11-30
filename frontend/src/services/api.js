@@ -97,4 +97,25 @@ export const receiptAPI = {
   getReceiptByPayment: (paymentReferenceId) => api.get(`/receipts/payment/${paymentReferenceId}/`),
 };
 
+
+// interceptor to handle 401 (unauthorized)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token is invalid — likely session replaced or expired
+      localStorage.removeItem('token');
+      
+      // Only show banner if user is on a protected page (not already on /login)
+      const currentPath = window.location.pathname;
+      if (currentPath !== '/login') {
+        // Trigger global session replaced UI
+        const event = new CustomEvent('sessionReplaced');
+        window.dispatchEvent(event);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

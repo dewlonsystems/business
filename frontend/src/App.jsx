@@ -1,5 +1,5 @@
 // src/App.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -12,8 +12,8 @@ import ReceiptList from './components/ReceiptList';
 import PrivateRoute from './components/PrivateRoute';
 import PaymentRedirect from './components/PaymentRedirect';
 import PaymentStatus from './components/PaymentStatus';
+import SessionReplacedBanner from './components/SessionReplacedBanner'; // 👈 ONLY ADDITION
 
-// Create a theme with green colors as per your preference
 const theme = createTheme({
   palette: {
     primary: {
@@ -48,10 +48,27 @@ const theme = createTheme({
 });
 
 function App() {
+  // 👇 ONLY ADDITION: state and event listener
+  const [showSessionReplaced, setShowSessionReplaced] = useState(false);
+
+  useEffect(() => {
+    const handleSessionReplaced = () => {
+      setShowSessionReplaced(true);
+    };
+
+    window.addEventListener('sessionReplaced', handleSessionReplaced);
+
+    return () => {
+      window.removeEventListener('sessionReplaced', handleSessionReplaced);
+    };
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+        {/* 👇 ONLY ADDITION: show banner if triggered */}
+        {showSessionReplaced && <SessionReplacedBanner />}
         <Routes>
           <Route path="/login" element={<Login />} />
           {/* Protected routes with layout */}
@@ -69,7 +86,7 @@ function App() {
             <Route path="/pay/:referenceId" element={<PaymentRedirect />} />
             <Route path="/payment-status/:referenceId" element={<PaymentStatus />} />
           </Route>
-          {/* Redirect any other authenticated routes to dashboard */}
+          {/* Redirect any unmatched routes */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>
