@@ -1,5 +1,5 @@
 // src/components/SessionReplacedBanner.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -12,14 +12,26 @@ import { useNavigate } from 'react-router-dom';
 
 const SessionReplacedBanner = () => {
   const [countdown, setCountdown] = useState(5);
+  const [isVisible, setIsVisible] = useState(true); // ✅ Control visibility
   const navigate = useNavigate();
 
+  const handleNavigateToLogin = useCallback(() => {
+    if (!isVisible) return; // Prevent double navigation
+    setIsVisible(false); // ✅ Hide banner immediately
+    // Small delay to ensure UI update before redirect
+    setTimeout(() => {
+      navigate('/login', { replace: true });
+    }, 100);
+  }, [isVisible, navigate]);
+
   useEffect(() => {
+    if (!isVisible) return;
+
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          navigate('/login', { replace: true });
+          handleNavigateToLogin();
           return 0;
         }
         return prev - 1;
@@ -27,11 +39,9 @@ const SessionReplacedBanner = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [isVisible, handleNavigateToLogin]);
 
-  const handleLoginAgain = () => {
-    navigate('/login', { replace: true });
-  };
+  if (!isVisible) return null; // ✅ Don't render if hidden
 
   return (
     <Box
@@ -59,7 +69,6 @@ const SessionReplacedBanner = () => {
           overflow: 'hidden'
         }}
       >
-        {/* Countdown progress bar */}
         <Box sx={{ width: '100%', mb: 2 }}>
           <LinearProgress
             variant="determinate"
@@ -78,7 +87,7 @@ const SessionReplacedBanner = () => {
         <Button
           variant="contained"
           color="error"
-          onClick={handleLoginAgain}
+          onClick={handleNavigateToLogin}
           sx={{ mt: 2 }}
           fullWidth
         >
