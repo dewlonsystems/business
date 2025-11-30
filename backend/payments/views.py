@@ -230,10 +230,10 @@ def overall_stats(request):
 @permission_classes([IsAuthenticated])
 def get_total_collected(request):
     total = Payment.objects.filter(
-        user=request.user,
-        status='success'  # ✅ Only successful payments
+        initiated_by=request.user,  # ✅ CORRECT FIELD NAME
+        status='success'
     ).aggregate(total_sum=Sum('amount'))['total_sum'] or 0
 
     return Response({
-        'total_collected': float(total)  # Convert to float for JSON
+        'total_collected': float(total)
     })
