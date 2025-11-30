@@ -11,6 +11,7 @@ from .models import Payment
 from .serializers import PaymentSerializer
 from .services import PaymentProcessor, PaystackService
 import json
+from django.db.models import Sum
 
 class PaymentInitiateView(generics.CreateAPIView):
     queryset = Payment.objects.all()
@@ -223,3 +224,16 @@ def overall_stats(request):
     """Get overall payment statistics"""
     stats = PaymentAnalytics.get_overall_stats()
     return Response(stats)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_total_collected(request):
+    total = Payment.objects.filter(
+        user=request.user,
+        status='success'  # ✅ Only successful payments
+    ).aggregate(total_sum=Sum('amount'))['total_sum'] or 0
+
+    return Response({
+        'total_collected': float(total)  # Convert to float for JSON
+    })

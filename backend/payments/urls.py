@@ -11,4 +11,5 @@ urlpatterns = [
     path('analytics/daily/', views.daily_summary, name='daily-summary'),
     path('analytics/user/', views.user_summary, name='user-summary'),
     path('analytics/stats/', views.overall_stats, name='overall-stats'),
+    path('total/', views.get_total_collected, name='total_collected'),
 ]
