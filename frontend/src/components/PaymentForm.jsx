@@ -1,5 +1,5 @@
 // src/components/PaymentForm.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Container, 
   Typography, 
@@ -48,6 +48,9 @@ const PaymentForm = () => {
   const [success, setSuccess] = useState('');
   const [showMpesaDialog, setShowMpesaDialog] = useState(false);
   const [mpesaResult, setMpesaResult] = useState(null);
+  const [polling, setPolling] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState(null); // 'success', 'failed', 'timeout'
+  const [statusMessage, setStatusMessage] = useState('');
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -120,12 +123,63 @@ const PaymentForm = () => {
       });
       
       if (formData.payment_method === 'mpesa') {
-        // For Mpesa, show a dialog to inform the user
+        const referenceId = response.data?.reference_id;
+        if (!referenceId) {
+          setError('Failed to get payment reference. Please try again.');
+          setLoading(false);
+          return;
+        }
+
         setMpesaResult(response.data);
         setShowMpesaDialog(true);
-        
-        // Update success message for Mpesa
-        setSuccess('Mpesa payment initiated! Check your phone for the payment prompt.');
+        setPolling(true);
+        setPaymentStatus(null);
+        setStatusMessage('');
+
+        // Start polling for payment status
+        let attempts = 0;
+        const maxAttempts = 8; // 8 * 5s = 40 seconds
+        const pollInterval = setInterval(async () => {
+          attempts += 1;
+          try {
+            const statusRes = await paymentAPI.getPaymentStatus(referenceId);
+            const { status, message = '' } = statusRes.data || {};
+
+            if (status === 'success') {
+              clearInterval(pollInterval);
+              setPolling(false);
+              setPaymentStatus('success');
+              setStatusMessage('Payment successful!');
+              setTimeout(() => {
+                setShowMpesaDialog(false);
+                navigate('/payments');
+              }, 2000);
+              return;
+            } else if (status === 'failed' || status === 'cancelled') {
+              clearInterval(pollInterval);
+              setPolling(false);
+              setPaymentStatus('failed');
+              setStatusMessage(message || 'Payment failed.');
+              return;
+            }
+
+            if (attempts >= maxAttempts) {
+              clearInterval(pollInterval);
+              setPolling(false);
+              setPaymentStatus('timeout');
+              setStatusMessage('Payment not completed in time.');
+            }
+          } catch (err) {
+            console.error('Polling error:', err);
+            if (attempts >= maxAttempts) {
+              clearInterval(pollInterval);
+              setPolling(false);
+              setPaymentStatus('timeout');
+              setStatusMessage('Unable to confirm payment.');
+            }
+          }
+        }, 5000);
+
       } else if (response.data.authorization_url && formData.payment_method === 'paystack') {
         // For Paystack, redirect to the authorization URL
         window.location.href = response.data.authorization_url;
@@ -152,7 +206,9 @@ const PaymentForm = () => {
       description: '',
       payment_method: ''
     });
-    // Don't navigate immediately, let user see the success message
+    setPaymentStatus(null);
+    setStatusMessage('');
+    setPolling(false);
   };
 
   const handleMethodChange = (method) => {
@@ -342,7 +398,7 @@ const PaymentForm = () => {
                     fullWidth
                     label="Amount (KES)"
                     name="amount"
-                    type="text" // Changed from number to text to allow custom validation
+                    type="text"
                     value={formData.amount}
                     onChange={handleChange}
                     required
@@ -380,7 +436,7 @@ const PaymentForm = () => {
                     fullWidth
                     label="Phone Number"
                     name="phone_number"
-                    type="text" // Changed from number to text to allow custom validation
+                    type="text"
                     value={formData.phone_number}
                     onChange={handleChange}
                     required
@@ -476,9 +532,9 @@ const PaymentForm = () => {
                 borderColor: '#f44336',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 2, // Reduced padding
+                px: 2,
                 py: 1,
-                width: { xs: '100%', sm: 'auto' }, // Full width on mobile
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   backgroundColor: 'rgba(244, 67, 54, 0.1)',
                   borderColor: '#d32f2f'
@@ -495,10 +551,10 @@ const PaymentForm = () => {
                 backgroundColor: '#4a7c59',
                 textTransform: 'none',
                 fontWeight: 600,
-                px: 3, // Reduced padding
+                px: 3,
                 py: 1.5,
                 fontSize: '1rem',
-                width: { xs: '100%', sm: 'auto' }, // Full width on mobile
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   backgroundColor: '#3d664b'
                 },
@@ -545,30 +601,114 @@ const PaymentForm = () => {
         <DialogContent dividers>
           <DialogContentText>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 2 }}>
-              <Box sx={{ 
-                width: 80, 
-                height: 80, 
-                borderRadius: '50%', 
-                backgroundColor: 'rgba(74, 124, 89, 0.1)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                mb: 2
-              }}>
-                <LocalAtmIcon sx={{ fontSize: 40, color: '#4a7c59' }} />
-              </Box>
+              {paymentStatus === 'success' ? (
+                <Box sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  backgroundColor: 'rgba(76, 175, 80, 0.2)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  mb: 2
+                }}>
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      backgroundColor: '#4CAF50',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      fontSize: '20px'
+                    }}
+                  >
+                    ✓
+                  </Box>
+                </Box>
+              ) : paymentStatus === 'failed' || paymentStatus === 'timeout' ? (
+                <Box sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  backgroundColor: 'rgba(244, 67, 54, 0.2)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  mb: 2
+                }}>
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      backgroundColor: '#f44336',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      fontSize: '20px'
+                    }}
+                  >
+                    ✘
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ 
+                  width: 80, 
+                  height: 80, 
+                  borderRadius: '50%', 
+                  backgroundColor: 'rgba(74, 124, 89, 0.1)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  mb: 2
+                }}>
+                  {polling ? (
+                    <CircularProgress size={40} sx={{ color: '#4a7c59' }} />
+                  ) : (
+                    <LocalAtmIcon sx={{ fontSize: 40, color: '#4a7c59' }} />
+                  )}
+                </Box>
+              )}
+
               <Typography variant="h6" sx={{ color: '#4a7c59', mb: 2, textAlign: 'center' }}>
-                Check your phone!
+                {paymentStatus === 'success'
+                  ? 'Payment Successful!'
+                  : paymentStatus === 'failed'
+                  ? 'Payment Failed'
+                  : paymentStatus === 'timeout'
+                  ? 'Payment Incomplete'
+                  : 'Check Your Phone'}
               </Typography>
+
               <Typography variant="body1" align="center" sx={{ mb: 1 }}>
-                We've sent an STK Push to your phone number:
+                {paymentStatus === 'success'
+                  ? 'Your payment has been confirmed.'
+                  : paymentStatus === 'failed'
+                  ? statusMessage
+                  : paymentStatus === 'timeout'
+                  ? 'We did not receive confirmation from M-Pesa.'
+                  : 'We’ve sent an STK Push to your phone:'}
               </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#4a7c59', mb: 2 }}>
-                +254{formData.phone_number}
-              </Typography>
-              <Typography variant="body1" align="center">
-                Enter your Mpesa PIN to complete the payment.
-              </Typography>
+
+              {paymentStatus === null && (
+                <>
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#4a7c59', mb: 2 }}>
+                    +254{formData.phone_number}
+                  </Typography>
+                  <Typography variant="body1" align="center">
+                    Enter your M-Pesa PIN to complete the payment.
+                  </Typography>
+                </>
+              )}
+
               <Box sx={{ mt: 2, textAlign: 'center', width: '100%' }}>
                 <Typography variant="body2" color="text.secondary">
                   Reference: {mpesaResult?.reference_id || 'Processing...'}
@@ -577,20 +717,34 @@ const PaymentForm = () => {
                   Amount: KSH {formData.amount}
                 </Typography>
               </Box>
+
+              {(paymentStatus === 'failed' || paymentStatus === 'timeout') && (
+                <Typography variant="body2" color="error" sx={{ mt: 2 }}>
+                  {statusMessage}
+                </Typography>
+              )}
             </Box>
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', p: 2 }}>
-          <Button 
-            onClick={handleMpesaDialogClose} 
-            variant="contained"
-            sx={{ 
-              backgroundColor: '#4a7c59',
-              '&:hover': { backgroundColor: '#3d664b' }
-            }}
-          >
-            Close
-          </Button>
+          {paymentStatus !== 'success' && (
+            <Button 
+              onClick={handleMpesaDialogClose} 
+              variant="contained"
+              sx={{ 
+                backgroundColor: paymentStatus === 'failed' || paymentStatus === 'timeout' 
+                  ? '#f44336' 
+                  : '#4a7c59',
+                '&:hover': { 
+                  backgroundColor: paymentStatus === 'failed' || paymentStatus === 'timeout' 
+                    ? '#d32f2f' 
+                    : '#3d664b' 
+                }
+              }}
+            >
+              {paymentStatus === 'failed' || paymentStatus === 'timeout' ? 'Close' : 'OK'}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </Container>
