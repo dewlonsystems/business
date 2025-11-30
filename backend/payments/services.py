@@ -16,7 +16,7 @@ class MpesaService:
         self.business_short_code = settings.MPESA_BUSINESS_SHORT_CODE
         self.passkey = settings.MPESA_PASSKEY
         self.callback_url = settings.MPESA_CALLBACK_URL
-        # Always use live environment
+        self.party_b = settings.MPESA_TILL_NUMBER
         self.base_url = 'https://api.safaricom.co.ke'
     
     def get_access_token(self):
@@ -53,10 +53,10 @@ class MpesaService:
             "BusinessShortCode": self.business_short_code,
             "Password": encoded_password,
             "Timestamp": timestamp,
-            "TransactionType": "CustomerPayBillOnline",
+            "TransactionType": "CustomerBuyGoodsOnline",
             "Amount": int(amount),
             "PartyA": phone_number,
-            "PartyB": self.business_short_code,
+            "PartyB": self.party_b,
             "PhoneNumber": phone_number,
             "CallBackURL": self.callback_url,
             "AccountReference": account_reference,
@@ -128,7 +128,7 @@ class PaystackService:
             "Content-Type": "application/json"
         }
         
-        # Amount in kobo (multiply by 100)
+        # Amount loading
         amount_kobo = int(float(amount) * 100)
         
         payload = {
@@ -206,17 +206,11 @@ class PaymentProcessor:
     @staticmethod
     def validate_phone_number(phone_number):
         """Validate phone number format"""
-        # Remove any spaces or dashes
         clean_number = phone_number.replace(' ', '').replace('-', '')
-        
-        # Ensure it starts with + or 0
         if clean_number.startswith('+'):
             clean_number = clean_number[1:]
         elif clean_number.startswith('0'):
-            # Convert to international format (assuming Kenya)
             clean_number = '254' + clean_number[1:]
-        
-        # Validate length (Kenya numbers are 12 digits in international format)
         if len(clean_number) != 12:
             raise ValidationError("Invalid phone number format")
         
@@ -228,7 +222,7 @@ class PaymentProcessor:
         if amount <= 0:
             raise ValidationError("Amount must be greater than 0")
         
-        if amount > 1000000:  # Example limit of 1,000,000
+        if amount > 1000000: 
             raise ValidationError("Amount exceeds maximum allowed limit")
         
         return amount
@@ -237,11 +231,9 @@ class PaymentProcessor:
     def process_payment(payment):
         """Process payment based on method"""
         try:
-            # Validate phone number and amount
+
             validated_phone = PaymentProcessor.validate_phone_number(payment.phone_number)
             validated_amount = PaymentProcessor.validate_amount(payment.amount)
-            
-            # Update payment with validated data
             payment.phone_number = validated_phone
             payment.amount = validated_amount
             payment.status = 'initiated'
@@ -256,7 +248,6 @@ class PaymentProcessor:
                     transaction_desc=payment.description or "Payment"
                 )
                 
-                # Update payment with Mpesa response
                 payment.response_data = result
                 if 'errorCode' in result:
                     payment.status = 'failed'
@@ -268,7 +259,7 @@ class PaymentProcessor:
             elif payment.payment_method == 'paystack':
                 paystack_service = PaystackService()
                 
-                # Use email from user or create a placeholder
+                # Use of email
                 email = f"customer{validated_phone}@example.com"
                 if payment.initiated_by and payment.initiated_by.email:
                     email = payment.initiated_by.email
@@ -280,7 +271,7 @@ class PaymentProcessor:
                     reference=payment.reference_id
                 )
                 
-                # Update payment with Paystack response
+                # payment with Paystack response
                 payment.response_data = result
                 if result.get('status'):
                     payment.status = 'processing'
