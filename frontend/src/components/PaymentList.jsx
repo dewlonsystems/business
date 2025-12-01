@@ -165,9 +165,10 @@ const PaymentList = () => {
         </Paper>
 
         {/* Table Skeleton */}
-        <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Card sx={{ borderRadius: 3, overflow: 'hidden', width: '100%', maxWidth: '100%' }}>
           <Box sx={{ 
             overflowX: 'auto',
+            width: '100%',
             maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)',
             overflowY: 'auto'
           }}>
@@ -302,7 +303,9 @@ const PaymentList = () => {
           mb: 4, 
           borderRadius: 3,
           border: '1px solid rgba(74, 124, 89, 0.1)',
-          backgroundColor: 'rgba(74, 124, 89, 0.02)'
+          backgroundColor: 'rgba(74, 124, 89, 0.02)',
+          overflowX: isMobile ? 'auto' : 'visible',
+          maxWidth: '100%'
         }}
       >
         <Box sx={{ 
@@ -469,13 +472,16 @@ const PaymentList = () => {
       <Card sx={{ 
         borderRadius: 3, 
         overflow: 'hidden', 
+        width: '100%',
+        maxWidth: '100%',
         boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
         border: '1px solid rgba(0,0,0,0.1)'
       }}>
         {/* Scrollable Table Container */}
         <Box sx={{ 
-          overflowX: 'auto', // Horizontal scroll for table
-          maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)', // Vertical scroll for table
+          overflowX: 'auto',
+          width: '100%',
+          maxHeight: isMobile ? '60vh' : 'calc(100vh - 350px)',
           overflowY: 'auto',
           '&::-webkit-scrollbar': {
             height: 8,
